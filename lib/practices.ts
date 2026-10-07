@@ -1,0 +1,17 @@
+/** Small experiments with stillness and nature. Invitations, not instructions: the point is to look for yourself. */
+export interface Practice { id: string; title: string; minutes: number; kind: "stillness" | "nature" | "inquiry"; invitation: string; lens: string }
+
+export const PRACTICES: Practice[] = [
+  { id: "just-sit", title: "Just sit", minutes: 5, kind: "stillness", lens: "Krishnamurti", invitation: "Sit down. Don't try to quiet the mind. Just watch what it does on its own, the way you'd watch traffic from a window." },
+  { id: "inner-body", title: "Feel the inner body", minutes: 5, kind: "stillness", lens: "Eckhart Tolle", invitation: "Close your eyes. Can you feel your hands from the inside, without looking at them? Rest attention there. Notice what happens to thinking." },
+  { id: "gap", title: "Find the gap", minutes: 3, kind: "stillness", lens: "Eckhart Tolle", invitation: "Ask yourself: \"I wonder what my next thought will be.\" Then wait, alert, like a cat at a mouse hole. What's there before it arrives?" },
+  { id: "tree", title: "Sit with a tree", minutes: 10, kind: "nature", lens: "Osho", invitation: "Find a tree. Sit near it without naming anything: not 'tree', not 'bark', not 'beautiful'. Just let it be seen. Notice who is looking." },
+  { id: "sky", title: "Sky gazing", minutes: 5, kind: "nature", lens: "Osho", invitation: "Lie down and look at open sky. Let thoughts pass like clouds. Is the sky ever disturbed by them?" },
+  { id: "barefoot", title: "Barefoot ground", minutes: 5, kind: "nature", lens: "Neuroscience", invitation: "Stand barefoot on grass, sand or earth. Slow your exhale so it's longer than your inhale. Notice your body settle as the nervous system shifts down." },
+  { id: "sounds", title: "Sound bath, for free", minutes: 5, kind: "nature", lens: "Krishnamurti", invitation: "Outside, close your eyes and listen to every sound at once, near and far, without picking favourites. Where do the sounds happen?" },
+  { id: "who-without", title: "Who would I be without it?", minutes: 5, kind: "inquiry", lens: "Peter Crone", invitation: "Pick one story you keep telling about yourself. Ask: who would I be, right now, without this story? Don't answer with words; feel for it." },
+  { id: "end-in-mind", title: "Live from the end", minutes: 5, kind: "inquiry", lens: "Neville Goddard", invitation: "Imagine a scene that would only happen if what you want were already true. Feel it from the inside, in first person, until it feels natural. Then let it go." },
+  { id: "excitement", title: "Follow the excitement", minutes: 5, kind: "inquiry", lens: "Bashar", invitation: "What is the most exciting thing you could do right now that you're able to do? Act on it to the best of your ability, with no insistence on the outcome." },
+  { id: "importance", title: "Lower the importance", minutes: 3, kind: "inquiry", lens: "Transurfing", invitation: "Name something that feels hugely important right now. Notice the tension that importance creates. Can you hold the same wish, but lightly, as if it were already fine either way?" },
+  { id: "new-self", title: "Rehearse a new self", minutes: 10, kind: "inquiry", lens: "Joe Dispenza", invitation: "Notice the emotion you wake up in most days. Then, eyes closed, rehearse how the person you want to become thinks, feels and acts, until the body starts to feel it before the evidence arrives." },
+];
