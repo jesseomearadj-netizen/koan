@@ -1,11 +1,12 @@
-import type { GuideTurn, Journal, Message, Narrative, NarrativeStatus, Sit } from "./types";
+import type { Discovery, GuideTurn, Journal, Message, Narrative, NarrativeStatus, Sit } from "./types";
+import { questById } from "./wisdom";
 
 /** Pure journal logic, shared by server routes and tests. */
 
-export const LIMITS = { messages: 60, narratives: 80, sits: 365, notes: 6, story: 140, note: 200, text: 2000 };
+export const LIMITS = { messages: 60, narratives: 80, sits: 365, notes: 6, story: 140, note: 200, text: 2000, discovery: 600, discoveries: 200 };
 const STATUSES: NarrativeStatus[] = ["noticed", "questioned", "seen-through"];
 
-export const emptyJournal = (): Journal => ({ v: 1, messages: [], narratives: [], sits: [] });
+export const emptyJournal = (): Journal => ({ v: 1, messages: [], narratives: [], sits: [], discoveries: [] });
 
 const clip = (s: unknown, n: number) => (typeof s === "string" ? s.replace(/\s+/g, " ").trim().slice(0, n) : "");
 
@@ -50,10 +51,18 @@ export function addSit(j: Journal, minutes: number, note: string, now = Date.now
   return { ...j, sits: [...j.sits, sit].slice(-LIMITS.sits) };
 }
 
+/** Records what someone found on a quest. Redoing a quest adds a new discovery; the path keeps them all. */
+export function addDiscovery(j: Journal, quest: string, note: string, now = Date.now()): Journal {
+  const n = clip(note, LIMITS.discovery);
+  if (!questById(quest) || !n) return j;
+  const d: Discovery = { quest, note: n, at: now };
+  return { ...j, discoveries: [...j.discoveries, d].slice(-LIMITS.discoveries) };
+}
+
 /** Appends one exchange and folds any narrative the guide noticed into the tracker. */
 export function applyTurn(j: Journal, text: string, turn: GuideTurn, now = Date.now()): Journal {
   const user: Message = { role: "user", text: clip(text, LIMITS.text), at: now };
-  const guide: Message = { role: "guide", text: turn.reply, at: now + 1, question: turn.question, experiment: turn.experiment, ...(turn.care ? { care: true } : {}) };
+  const guide: Message = { role: "guide", text: turn.reply, at: now + 1, question: turn.question, experiment: turn.experiment, wisdom: turn.wisdom, ...(turn.care ? { care: true } : {}) };
   let next: Journal = { ...j, messages: [...j.messages, user, guide].slice(-LIMITS.messages) };
   if (turn.narrative) next = noticeNarrative(next, turn.narrative.story, turn.narrative.where, now);
   return next;
@@ -80,5 +89,6 @@ export function sanitizeJournal(raw: unknown): Journal {
     .map((n) => ({ id: n.id, story: clip(n.story, LIMITS.story), status: STATUSES.includes(n.status) ? n.status : "noticed", count: Math.max(1, num(n.count)), firstSeen: num(n.firstSeen), lastSeen: num(n.lastSeen), notes: (Array.isArray(n.notes) ? n.notes : []).map((x) => clip(x, LIMITS.note)).filter(Boolean).slice(-LIMITS.notes) }) as Narrative)
     .slice(-LIMITS.narratives);
   const sits = (Array.isArray(r.sits) ? r.sits : []).filter((s) => s && num(s.minutes) > 0).map((s) => ({ at: num(s.at), minutes: num(s.minutes), note: clip(s.note, LIMITS.note) })).slice(-LIMITS.sits);
-  return { v: 1, messages, narratives, sits };
+  const discoveries = (Array.isArray(r.discoveries) ? r.discoveries : []).filter((d) => d && questById(d.quest) && typeof d.note === "string").map((d) => ({ quest: d.quest, note: clip(d.note, LIMITS.discovery), at: num(d.at) })).slice(-LIMITS.discoveries);
+  return { v: 1, messages, narratives, sits, discoveries };
 }

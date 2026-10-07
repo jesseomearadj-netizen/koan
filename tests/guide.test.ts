@@ -6,7 +6,7 @@ delete process.env.OPENROUTER_API_KEY;
 type Guide = typeof import("../lib/server/guide");
 const load = async (): Promise<Guide> => import("../lib/server/guide");
 const req = new Request("http://localhost/api/guide");
-const empty = { v: 1 as const, messages: [], narratives: [], sits: [] };
+const empty = { v: 1 as const, messages: [], narratives: [], sits: [], discoveries: [] };
 
 test("model output is validated and bounded", async () => {
   const { validateTurn } = await load();
@@ -41,4 +41,11 @@ test("without a key the guide answers with scripted questions", async () => {
   const { turn, live } = await guideTurn("I'm anxious about tomorrow", empty, req);
   assert.equal(live, false);
   assert.ok(turn.reply.length > 0);
+});
+
+test("the guide can only point at wisdom cards that exist", async () => {
+  const { validateTurn } = await load();
+  assert.equal(validateTurn({ reply: "Look.", wisdom: "tolle-watch" })!.wisdom, "tolle-watch");
+  assert.equal(validateTurn({ reply: "Look.", wisdom: "made-up-quote" })!.wisdom, null);
+  assert.equal(validateTurn({ reply: "Reach out.", wisdom: "tolle-watch", care: true })!.wisdom, null);
 });

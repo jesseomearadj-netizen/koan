@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { addSit, applyTurn, emptyJournal, LIMITS, noticeNarrative, removeNarrative, sanitizeJournal, setNarrativeStatus, sitStreak, storyKey } from "../lib/journal";
+import { addDiscovery, addSit, applyTurn, emptyJournal, LIMITS, noticeNarrative, removeNarrative, sanitizeJournal, setNarrativeStatus, sitStreak, storyKey } from "../lib/journal";
 import type { GuideTurn } from "../lib/types";
 
-const turn = (over: Partial<GuideTurn> = {}): GuideTurn => ({ reply: "Is that true?", question: null, narrative: null, experiment: null, care: false, ...over });
+const turn = (over: Partial<GuideTurn> = {}): GuideTurn => ({ reply: "Is that true?", question: null, narrative: null, experiment: null, wisdom: null, care: false, ...over });
 
 test("similar wordings of a story land on the same narrative", () => {
   assert.equal(storyKey("I'm not good enough."), storyKey("i am not good enough"));
@@ -73,4 +73,18 @@ test("sanitize drops malformed records and clips long text", () => {
   assert.deepEqual(j.narratives[0].notes, ["fine"]);
   assert.deepEqual(j.sits, [{ at: 1, minutes: 3, note: "" }]);
   assert.deepEqual(sanitizeJournal(null), emptyJournal());
+});
+
+test("discoveries need a real quest and words; redoing a quest keeps both", () => {
+  assert.equal(addDiscovery(emptyJournal(), "not-a-quest", "hi").discoveries.length, 0);
+  assert.equal(addDiscovery(emptyJournal(), "noise", "   ").discoveries.length, 0);
+  let j = addDiscovery(emptyJournal(), "noise", "Mostly about lunch", 1);
+  j = addDiscovery(j, "noise", "Quieter the second time", 2);
+  assert.deepEqual(j.discoveries.map((d) => d.note), ["Mostly about lunch", "Quieter the second time"]);
+  assert.equal(sanitizeJournal({ discoveries: [{ quest: "nope", note: "x" }, { quest: "who", note: "a", at: 3 }] }).discoveries.length, 1);
+});
+
+test("a guide turn's wisdom card is kept on the message", () => {
+  const j = applyTurn(emptyJournal(), "hi", turn({ wisdom: "tolle-watch" }));
+  assert.equal(j.messages[1].wisdom, "tolle-watch");
 });

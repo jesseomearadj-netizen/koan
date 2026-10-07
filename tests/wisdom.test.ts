@@ -1,0 +1,24 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { QUESTS, WISDOM, wisdomById, wisdomOfDay } from "../lib/wisdom";
+
+test("card and quest ids are unique, and every quest points at a real card", () => {
+  assert.equal(new Set(WISDOM.map((w) => w.id)).size, WISDOM.length);
+  assert.equal(new Set(QUESTS.map((q) => q.id)).size, QUESTS.length);
+  for (const q of QUESTS) assert.ok(wisdomById(q.wisdom), q.id);
+});
+
+test("only sourced cards are shown as direct quotes", () => {
+  for (const w of WISDOM) if (w.kind === "said") assert.ok(w.source, w.id);
+});
+
+test("every teacher Jom named has at least one card", () => {
+  for (const t of ["Jesus", "Buddha", "Ramana", "Nisargadatta", "Daikaku", "Tolle", "Krishnamurti", "Osho", "Bashar", "Neville", "Transurfing", "Crone", "Dispenza", "Neuroscience"]) {
+    assert.ok(WISDOM.some((w) => w.teacher.includes(t)), t);
+  }
+});
+
+test("wisdom of the day is stable within a day", () => {
+  const t = Date.UTC(2026, 9, 7, 1);
+  assert.equal(wisdomOfDay(t).id, wisdomOfDay(t + 3_600_000).id);
+});

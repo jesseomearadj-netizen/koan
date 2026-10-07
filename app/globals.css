@@ -163,3 +163,33 @@ textarea { resize: vertical }
 .sits { display: grid; gap: 6px; font-size: .9rem }
 .sits li { display: grid; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--line) }
 .sits em { color: var(--muted) }
+
+/* Wisdom cards */
+.wisdom { margin: 0; display: grid; gap: 6px; padding: 14px 16px; border-radius: 16px; background: var(--gold-soft); text-align: left }
+.wisdom blockquote { margin: 0; font-family: var(--font-display), serif; font-size: 1.12rem; line-height: 1.4 }
+.wisdom blockquote.idea { font-style: italic }
+.wisdom figcaption { font-size: .8rem; color: var(--muted) }
+.wisdom .look { font-size: .9rem; line-height: 1.5 }
+.wisdom.compact { padding: 10px 12px }
+.wisdom.compact blockquote { font-size: 1rem }
+
+/* Path */
+.path { display: grid; gap: 16px }
+.progress { height: 8px; border-radius: 999px; background: var(--moss-soft); overflow: hidden }
+.progress span { display: block; height: 100%; background: var(--moss); border-radius: 999px; transition: width .4s }
+.quests { display: grid; gap: 2px; position: relative }
+.quest-head { width: 100%; display: flex; gap: 14px; align-items: center; text-align: left; padding: 10px 4px }
+.quest-head > span:last-child { display: grid; gap: 2px }
+.dot { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--line); background: var(--surface); font-weight: 600; font-size: .9rem; color: var(--muted) }
+.quest.next .dot { border-color: var(--gold); color: var(--ink) }
+.quest.done .dot { background: var(--moss); border-color: var(--moss); color: var(--paper) }
+.quest:not(:last-child) .quest-head { position: relative }
+.quest:not(:last-child) .quest-head::after { content: ""; position: absolute; left: 21px; top: 48px; width: 2px; height: 14px; background: var(--line) }
+.quest-body { display: grid; gap: 12px; margin: 4px 0 12px 50px; line-height: 1.5 }
+.quest-body form { display: grid; gap: 8px }
+.quest-body label { font-weight: 500 }
+.quest-body .btn-primary { justify-self: start }
+.finds { display: grid; gap: 8px }
+.finds li { display: grid; gap: 2px; padding-left: 12px; border-left: 3px solid var(--moss) }
+.deck { display: grid; gap: 12px; justify-items: start }
+@media (max-width: 420px) { .quest-body { margin-left: 0 } }

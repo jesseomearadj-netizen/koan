@@ -4,10 +4,11 @@ import { Logo } from "./Logo";
 const PILLARS = [
   { title: "Talk it through", body: "Say what's on your mind. Koan won't hand you answers; it asks the question that turns you back toward what's actually here." },
   { title: "Catch your stories", body: "\"I'm not enough.\" \"People always leave.\" Koan quietly notes the narratives you repeat, so you can watch them lose their grip." },
+  { title: "Go on quests", body: "A path of playful little adventures inward: the Noisy Room, the Story Hunter, the Slow Teacher. Each one comes with a piece of old wisdom, and what you discover there is yours." },
   { title: "Experiment with stillness", body: "Small invitations to sit, listen, walk barefoot or look at the sky. A few minutes, done for real, beats any amount of reading." },
 ];
 
-const LENSES = ["Eckhart Tolle", "Krishnamurti", "Osho", "Bashar", "Neville Goddard", "Transurfing", "Peter Crone", "Joe Dispenza", "Neuroscience"];
+const LENSES = ["Jesus", "Buddha", "Sri Ramana Maharshi", "Nisargadatta Maharaj", "Zen", "Lao Tzu", "Eckhart Tolle", "Krishnamurti", "Osho", "Bashar", "Neville Goddard", "Transurfing", "Peter Crone", "Joe Dispenza", "Neuroscience"];
 
 export function Landing() {
   return (
@@ -24,7 +25,7 @@ export function Landing() {
         <section className="hero">
           <p className="kicker">A mindful friend, with an old teacher&apos;s eyes</p>
           <h1>Not another voice in your head.<br /><em>A friend who points back to you.</em></h1>
-          <p className="lede">Koan keeps things light and keeps asking the good questions: <q>Is that true?</q> <q>Who is noticing?</q> <q>What&apos;s here before the next thought?</q> It draws on the great teachers, then gets out of the way so you can look for yourself.</p>
+          <p className="lede">Koan keeps things light and keeps asking the good questions: <q>Is that true?</q> <q>Who is noticing?</q> <q>What&apos;s here before the next thought?</q> It brings in the great teachers in simple words, then gets out of the way so you can look for yourself. Simple enough for a curious twelve-year-old, deep enough for anyone.</p>
           <div className="hero-cta">
             <Link href="/login?mode=signup" className="btn-primary btn-lg">Start the journey</Link>
             <span className="muted">No email. Just a username.</span>

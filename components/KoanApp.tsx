@@ -4,8 +4,10 @@ import { Logo } from "./Logo";
 import { PRACTICES, type Practice } from "@/lib/practices";
 import { sitStreak } from "@/lib/journal";
 import type { Experiment, GuideTurn, Journal, Message, NarrativeStatus } from "@/lib/types";
+import { QUESTS, WISDOM, wisdomOfDay, type Quest } from "@/lib/wisdom";
+import { WisdomCard } from "./WisdomCard";
 
-type Tab = "talk" | "stories" | "stillness";
+type Tab = "talk" | "path" | "stories" | "stillness";
 
 async function api<T>(path: string, body?: unknown): Promise<T> {
   if (typeof navigator !== "undefined" && !navigator.onLine) throw new Error("You're offline. Reconnect to talk with Koan.");
@@ -46,7 +48,7 @@ export default function KoanApp({ user }: { user: string }) {
       </header>
 
       <nav className="tabs" aria-label="Sections">
-        {([["talk", "Talk"], ["stories", `Stories${open ? ` · ${open}` : ""}`], ["stillness", "Stillness"]] as [Tab, string][]).map(([t, label]) => (
+        {([["talk", "Talk"], ["path", "Path"], ["stories", `Stories${open ? ` · ${open}` : ""}`], ["stillness", "Stillness"]] as [Tab, string][]).map(([t, label]) => (
           <button key={t} className={tab === t ? "active" : ""} aria-current={tab === t ? "page" : undefined} onClick={() => setTab(t)}>{label}</button>
         ))}
       </nav>
@@ -56,6 +58,7 @@ export default function KoanApp({ user }: { user: string }) {
       <main className="app-main">
         {!journal ? <p className="muted center">Settling in…</p>
           : tab === "talk" ? <Talk journal={journal} setJournal={setJournal} onError={setError} onTry={(x) => { setPractice(x); setTab("stillness"); }} act={act} />
+          : tab === "path" ? <Path journal={journal} act={act} />
           : tab === "stories" ? <Stories journal={journal} act={act} />
           : <Stillness journal={journal} act={act} chosen={practice} choose={setPractice} />}
       </main>
@@ -91,6 +94,8 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
     <section className="talk">
       {journal.messages.length === 0 && !pending && (
         <div className="welcome card">
+          <p className="kicker">Today&apos;s wisdom</p>
+          <WisdomCard card={wisdomOfDay()} />
           <h2>What&apos;s here right now?</h2>
           <p className="muted">A worry, a win, a thought that keeps looping, or nothing at all. Start anywhere. Koan won&apos;t tell you who you are; it&apos;ll help you look.</p>
           <div className="starters">
@@ -123,6 +128,7 @@ function Bubble({ m, onTry }: { m: Message; onTry: (x: Experiment) => void }) {
     <li className={`bubble guide${m.care ? " care" : ""}`}>
       <p>{m.text}</p>
       {m.question && <p className="question">{m.question}</p>}
+      {m.wisdom && <WisdomCard id={m.wisdom} compact />}
       {m.experiment && (
         <div className="experiment">
           <strong>Try: {m.experiment.title}</strong>
@@ -131,6 +137,56 @@ function Bubble({ m, onTry }: { m: Message; onTry: (x: Experiment) => void }) {
         </div>
       )}
     </li>
+  );
+}
+
+function Path({ journal, act }: { journal: Journal; act: (b: unknown) => Promise<void> }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const [note, setNote] = useState("");
+  const [deck, setDeck] = useState(() => Math.floor(Math.random() * WISDOM.length));
+  const found = (q: Quest) => journal.discoveries.filter((d) => d.quest === q.id);
+  const done = QUESTS.filter((q) => found(q).length > 0).length;
+  const next = QUESTS.find((q) => found(q).length === 0);
+  return (
+    <section className="path">
+      <div className="card intro">
+        <p className="kicker">{done} of {QUESTS.length} explored</p>
+        <h2>Your path</h2>
+        <p className="muted">Little quests inward. Each one points somewhere; what you find there is yours. Go in any order. Your discoveries, in your own words, become the path.</p>
+        <div className="progress" aria-hidden="true"><span style={{ width: `${(done / QUESTS.length) * 100}%` }} /></div>
+      </div>
+      <ol className="quests">
+        {QUESTS.map((q, i) => {
+          const finds = found(q);
+          const isOpen = open === q.id;
+          return (
+            <li key={q.id} className={`quest${finds.length ? " done" : ""}${q === next ? " next" : ""}`}>
+              <button className="quest-head" aria-expanded={isOpen} onClick={() => { setOpen(isOpen ? null : q.id); setNote(""); }}>
+                <span className="dot" aria-hidden="true">{finds.length ? "✓" : i + 1}</span>
+                <span><strong>{q.title}</strong><span className="muted small">{q.tagline}</span></span>
+              </button>
+              {isOpen && (
+                <div className="quest-body card">
+                  <WisdomCard id={q.wisdom} />
+                  <p><strong>Your mission:</strong> {q.mission}</p>
+                  {finds.length > 0 && <ul className="finds">{finds.map((d) => <li key={d.at}><span className="muted small">{new Date(d.at).toLocaleDateString()}</span>{d.note}</li>)}</ul>}
+                  <form onSubmit={(e) => { e.preventDefault(); if (note.trim()) { void act({ action: "discover", quest: q.id, note }); setNote(""); } }}>
+                    <label htmlFor={`find-${q.id}`}>{q.ask}</label>
+                    <textarea id={`find-${q.id}`} rows={3} maxLength={600} value={note} onChange={(e) => setNote(e.target.value)} placeholder="What you found, in your own words…" />
+                    <button className="btn-primary" disabled={!note.trim()}>{finds.length ? "Add another discovery" : "Save my discovery"}</button>
+                  </form>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+      <div className="card deck">
+        <p className="kicker">Wisdom deck · {deck + 1} of {WISDOM.length}</p>
+        <WisdomCard card={WISDOM[deck]} />
+        <button className="btn-ghost" onClick={() => setDeck((d) => (d + 1 + Math.floor(Math.random() * (WISDOM.length - 1))) % WISDOM.length)}>Draw another</button>
+      </div>
+    </section>
   );
 }
 
