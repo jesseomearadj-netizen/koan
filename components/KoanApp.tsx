@@ -6,6 +6,7 @@ import { sitStreak } from "@/lib/journal";
 import type { Experiment, GuideTurn, Journal, Message, NarrativeStatus } from "@/lib/types";
 import { QUESTS, WISDOM, wisdomOfDay, type Quest } from "@/lib/wisdom";
 import { WisdomCard } from "./WisdomCard";
+import { Enso, Frog, Icon, type IconName } from "./Ink";
 
 type Tab = "talk" | "path" | "stories" | "stillness";
 
@@ -43,20 +44,26 @@ export default function KoanApp({ user }: { user: string }) {
     <div className="app">
       <header className="app-head">
         <Logo />
-        <span className="muted small">{user}</span>
-        <button className="btn-ghost small" onClick={signOut}>Sign out</button>
+        <details className="me-menu">
+          <summary>{user}</summary>
+          <button className="link" onClick={signOut}>Sign out</button>
+        </details>
       </header>
 
-      <nav className="tabs" aria-label="Sections">
-        {([["talk", "Talk"], ["path", "Path"], ["stories", `Stories${open ? ` · ${open}` : ""}`], ["stillness", "Stillness"]] as [Tab, string][]).map(([t, label]) => (
-          <button key={t} className={tab === t ? "active" : ""} aria-current={tab === t ? "page" : undefined} onClick={() => setTab(t)}>{label}</button>
+      <nav className="dock" aria-label="Sections">
+        {([["talk", "Talk", "talk"], ["path", "Path", "path"], ["stories", "Stories", "stories"], ["stillness", "Sit", "sit"]] as [Tab, string, IconName][]).map(([t, label, icon]) => (
+          <button key={t} className={tab === t ? "active" : ""} aria-current={tab === t ? "page" : undefined} onClick={() => { setTab(t); window.scrollTo({ top: 0 }); }}>
+            <Icon name={icon} />
+            <span>{label}</span>
+            {t === "stories" && open > 0 && <span className="badge" aria-label={`${open} open`}>{open}</span>}
+          </button>
         ))}
       </nav>
 
       {error && <p className="error banner" role="alert" onClick={() => setError("")}>{error}</p>}
 
       <main className="app-main">
-        {!journal ? <p className="muted center">Settling in…</p>
+        {!journal ? <div className="settling"><Frog size={96} /><p className="muted">Settling in… no rush.</p></div>
           : tab === "talk" ? <Talk journal={journal} setJournal={setJournal} onError={setError} onTry={(x) => { setPractice(x); setTab("stillness"); }} act={act} />
           : tab === "path" ? <Path journal={journal} act={act} />
           : tab === "stories" ? <Stories journal={journal} act={act} />
@@ -93,29 +100,30 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
   return (
     <section className="talk">
       {journal.messages.length === 0 && !pending && (
-        <div className="welcome card">
-          <p className="kicker">Today&apos;s wisdom</p>
-          <WisdomCard card={wisdomOfDay()} />
-          <h2>What&apos;s here right now?</h2>
+        <div className="welcome">
+          <Frog size={88} className="welcome-frog" />
+          <h1>What&apos;s here right now?</h1>
           <p className="muted">A worry, a win, a thought that keeps looping, or nothing at all. Start anywhere. Koan won&apos;t tell you who you are; it&apos;ll help you look.</p>
           <div className="starters">
             {["I can't stop overthinking tonight.", "I feel stuck and don't know why.", "Something good happened and I don't trust it.", "I want to try meditating but I'm restless."].map((s) => (
               <button key={s} className="chip-btn" onClick={() => setText(s)}>{s}</button>
             ))}
           </div>
+          <p className="kicker">Today&apos;s pebble of wisdom</p>
+          <WisdomCard card={wisdomOfDay()} />
         </div>
       )}
       <ol className="thread">
         {journal.messages.map((m, i) => <Bubble key={`${m.at}-${i}`} m={m} onTry={onTry} />)}
-        {pending && <li className="bubble me">{pending}</li>}
-        {pending && <li className="bubble guide typing" aria-label="Koan is reflecting"><span /><span /><span /></li>}
+        {pending && <li className="me-line">{pending}</li>}
+        {pending && <li className="guide-line typing" aria-label="Koan is pondering"><Enso size={22} stroke={12} className="pondering" /><span className="muted">pondering…</span></li>}
       </ol>
       <div ref={end} />
       {demo && <p className="fine center">Demo mode: Koan is using scripted questions until the AI key is set.</p>}
       <form className="composer" onSubmit={send}>
         <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="Say what's on your mind…" rows={2} maxLength={2000}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }} aria-label="Your message" />
-        <button className="btn-primary" disabled={busy || !text.trim()}>Send</button>
+        <button className="btn-ink" disabled={busy || !text.trim()}>Send</button>
       </form>
       {journal.messages.length > 0 && <button className="btn-ghost small center-block" onClick={() => { if (confirm("Clear this conversation? Your stories and sits are kept.")) void act({ action: "clear-conversation" }); }}>Start fresh</button>}
     </section>
@@ -123,9 +131,11 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
 }
 
 function Bubble({ m, onTry }: { m: Message; onTry: (x: Experiment) => void }) {
-  if (m.role === "user") return <li className="bubble me">{m.text}</li>;
+  if (m.role === "user") return <li className="me-line">{m.text}</li>;
   return (
-    <li className={`bubble guide${m.care ? " care" : ""}`}>
+    <li className={`guide-line${m.care ? " care" : ""}`}>
+      <Enso size={22} stroke={12} className="avatar" />
+      <div className="guide-body">
       <p>{m.text}</p>
       {m.question && <p className="question">{m.question}</p>}
       {m.wisdom && <WisdomCard id={m.wisdom} compact />}
@@ -136,6 +146,7 @@ function Bubble({ m, onTry }: { m: Message; onTry: (x: Experiment) => void }) {
           <button className="btn-ghost small" onClick={() => onTry(m.experiment!)}>Do it now</button>
         </div>
       )}
+      </div>
     </li>
   );
 }
@@ -149,9 +160,9 @@ function Path({ journal, act }: { journal: Journal; act: (b: unknown) => Promise
   const next = QUESTS.find((q) => found(q).length === 0);
   return (
     <section className="path">
-      <div className="card intro">
-        <p className="kicker">{done} of {QUESTS.length} explored</p>
-        <h2>Your path</h2>
+      <div className="intro">
+        <p className="kicker">{done} of {QUESTS.length} stones stepped on</p>
+        <h1>Your path</h1>
         <p className="muted">Little quests inward. Each one points somewhere; what you find there is yours. Go in any order. Your discoveries, in your own words, become the path.</p>
         <div className="progress" aria-hidden="true"><span style={{ width: `${(done / QUESTS.length) * 100}%` }} /></div>
       </div>
@@ -162,18 +173,18 @@ function Path({ journal, act }: { journal: Journal; act: (b: unknown) => Promise
           return (
             <li key={q.id} className={`quest${finds.length ? " done" : ""}${q === next ? " next" : ""}`}>
               <button className="quest-head" aria-expanded={isOpen} onClick={() => { setOpen(isOpen ? null : q.id); setNote(""); }}>
-                <span className="dot" aria-hidden="true">{finds.length ? "✓" : i + 1}</span>
+                <span className="stone" aria-hidden="true">{finds.length ? "✓" : i + 1}</span>
                 <span><strong>{q.title}</strong><span className="muted small">{q.tagline}</span></span>
               </button>
               {isOpen && (
-                <div className="quest-body card">
+                <div className="quest-body">
                   <WisdomCard id={q.wisdom} />
                   <p><strong>Your mission:</strong> {q.mission}</p>
                   {finds.length > 0 && <ul className="finds">{finds.map((d) => <li key={d.at}><span className="muted small">{new Date(d.at).toLocaleDateString()}</span>{d.note}</li>)}</ul>}
                   <form onSubmit={(e) => { e.preventDefault(); if (note.trim()) { void act({ action: "discover", quest: q.id, note }); setNote(""); } }}>
                     <label htmlFor={`find-${q.id}`}>{q.ask}</label>
                     <textarea id={`find-${q.id}`} rows={3} maxLength={600} value={note} onChange={(e) => setNote(e.target.value)} placeholder="What you found, in your own words…" />
-                    <button className="btn-primary" disabled={!note.trim()}>{finds.length ? "Add another discovery" : "Save my discovery"}</button>
+                    <button className="btn-ink" disabled={!note.trim()}>{finds.length ? "Add another discovery" : "Save my discovery"}</button>
                   </form>
                 </div>
               )}
@@ -181,7 +192,7 @@ function Path({ journal, act }: { journal: Journal; act: (b: unknown) => Promise
           );
         })}
       </ol>
-      <div className="card deck">
+      <div className="deck">
         <p className="kicker">Wisdom deck · {deck + 1} of {WISDOM.length}</p>
         <WisdomCard card={WISDOM[deck]} />
         <button className="btn-ghost" onClick={() => setDeck((d) => (d + 1 + Math.floor(Math.random() * (WISDOM.length - 1))) % WISDOM.length)}>Draw another</button>
@@ -197,18 +208,18 @@ function Stories({ journal, act }: { journal: Journal; act: (b: unknown) => Prom
   const list = [...journal.narratives].sort((a, b) => (a.status === "seen-through" ? 1 : 0) - (b.status === "seen-through" ? 1 : 0) || b.lastSeen - a.lastSeen);
   return (
     <section className="stories">
-      <div className="card intro">
-        <h2>The stories you tell</h2>
+      <div className="intro">
+        <h1>The stories you tell</h1>
         <p className="muted">Narratives Koan has noticed in your words, or that you&apos;ve added. You don&apos;t have to fight them. Seeing a story as a story is most of the work.</p>
         <form className="add" onSubmit={(e) => { e.preventDefault(); if (story.trim()) { void act({ action: "notice", story, where: "added by you" }); setStory(""); } }}>
           <input value={story} onChange={(e) => setStory(e.target.value)} placeholder="e.g. I have to earn rest" maxLength={140} aria-label="A story you notice" />
-          <button className="btn-primary" disabled={!story.trim()}>Add</button>
+          <button className="btn-ink" disabled={!story.trim()}>Add</button>
         </form>
       </div>
-      {list.length === 0 && <p className="muted center">No stories yet. They tend to show up on their own once you start talking.</p>}
+      {list.length === 0 && <div className="empty"><Frog size={72} /><p className="muted">No stories caught yet. Don&apos;t worry, they always show up eventually.</p></div>}
       <ul className="narratives">
         {list.map((n) => (
-          <li key={n.id} className={`card narrative ${n.status}`}>
+          <li key={n.id} className={`narrative ${n.status}`}>
             <p className="story">&ldquo;{n.story}&rdquo;</p>
             <p className="meta">Seen {n.count}× · last {new Date(n.lastSeen).toLocaleDateString()}</p>
             {n.notes.length > 0 && <ul className="notes">{n.notes.slice(-3).map((x, i) => <li key={i}>{x}</li>)}</ul>}
@@ -259,34 +270,37 @@ function Stillness({ journal, act, chosen, choose }: { journal: Journal; act: (b
 
   return (
     <section className="stillness">
-      <div className="card timer">
-        {chosen ? <><p className="kicker">{"lens" in chosen ? chosen.lens : "From your conversation"}</p><h2>{chosen.title}</h2><p>{chosen.invitation}</p></> : <><h2>Sit for a while</h2><p className="muted">Pick an experiment below, or just sit. Nothing to achieve.</p></>}
+      <div className="timer">
+        {chosen ? <><p className="kicker">{"lens" in chosen ? chosen.lens : "From your conversation"}</p><h1>{chosen.title}</h1><p>{chosen.invitation}</p></> : <><h1>Sit for a while</h1><p className="muted">Pick an experiment below, or just sit. Nothing to achieve. Nobody is grading.</p></>}
         {left !== null ? (
           <>
-            <p className="clock" aria-live="off">{Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}</p>
+            <div className="enso-clock">
+              <Enso size={220} stroke={7} track progress={Math.max(0.02, 1 - left / (minutes * 60))} />
+              <p className="clock" aria-live="off">{Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}</p>
+            </div>
             <button className="btn-ghost" onClick={stop}>End early</button>
           </>
         ) : done !== null ? (
           <form className="after" onSubmit={(e) => { e.preventDefault(); void act({ action: "sit", minutes: done, note: [chosen?.title, note].filter(Boolean).join(": ") }); setDone(null); setNote(""); }}>
             <label htmlFor="sit-note">What did you notice? (optional)</label>
             <textarea id="sit-note" value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={180} placeholder="Restless at first, then the birds got very loud…" />
-            <div className="row"><button className="btn-primary">Save sit</button><button type="button" className="btn-ghost" onClick={() => setDone(null)}>Don&apos;t save</button></div>
+            <div className="row"><button className="btn-ink">Save sit</button><button type="button" className="btn-ghost" onClick={() => setDone(null)}>Don&apos;t save</button></div>
           </form>
         ) : (
           <div className="row">
             <label className="mins">Minutes <input type="number" min={1} max={120} value={minutes} onChange={(e) => setMinutes(Math.min(120, Math.max(1, Number(e.target.value) || 1)))} /></label>
-            <button className="btn-primary btn-lg" onClick={start}>Begin</button>
+            <button className="btn-ink btn-lg" onClick={start}>Begin</button>
             {chosen && <button className="btn-ghost" onClick={() => choose(null)}>Clear</button>}
           </div>
         )}
         <p className="fine">{journal.sits.length} sits · {Math.round(total)} minutes{streak ? ` · ${streak}-day streak` : ""}</p>
       </div>
 
-      <h3>Experiments</h3>
+      <h2>Experiments</h2>
       <ul className="practices">
         {PRACTICES.map((p) => (
           <li key={p.id}>
-            <button className={`card practice ${p.kind}`} onClick={() => { choose(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+            <button className={`practice ${p.kind}`} onClick={() => { choose(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
               <span className="kicker">{p.kind} · {p.minutes} min · {p.lens}</span>
               <strong>{p.title}</strong>
             </button>
@@ -296,7 +310,7 @@ function Stillness({ journal, act, chosen, choose }: { journal: Journal; act: (b
 
       {journal.sits.length > 0 && (
         <>
-          <h3>Recent sits</h3>
+          <h2>Recent sits</h2>
           <ul className="sits">{journal.sits.slice(-5).reverse().map((s) => <li key={s.at}><span>{new Date(s.at).toLocaleDateString()} · {s.minutes} min</span>{s.note && <em>{s.note}</em>}</li>)}</ul>
         </>
       )}

@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Zen_Maru_Gothic, Zen_Old_Mincho } from "next/font/google";
 import "./globals.css";
 
-const sans = Inter({ subsets: ["latin", "latin-ext"], variable: "--font-sans", display: "swap" });
-const display = Fraunces({ subsets: ["latin", "latin-ext"], variable: "--font-display", display: "swap", axes: ["opsz", "SOFT"] });
+// Rounded, friendly body type with a calligraphic serif for headings: shibumi, but smiling.
+const sans = Zen_Maru_Gothic({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-sans", display: "swap" });
+const display = Zen_Old_Mincho({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-display", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_ORIGIN || "https://koan.vercel.app"),
@@ -26,7 +27,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#161a17" }, { color: "#f4f1ea" }],
+  themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#151412" }, { color: "#f6f2e9" }],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

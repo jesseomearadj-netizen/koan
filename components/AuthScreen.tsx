@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { Logo } from "./Logo";
+import { Frog } from "./Ink";
 
 type AuthMode = "signin" | "signup";
 const STATUS: Record<number, string> = { 401: "That username and password don’t match.", 409: "That username is taken. Try another, or sign in.", 429: "Too many attempts. Wait a minute, then try again." };
@@ -45,20 +46,21 @@ export function AuthScreen({ initialMode }: { initialMode: AuthMode }) {
   return (
     <div className="auth-page">
       <Link href="/" className="auth-logo"><Logo /></Link>
-      <main className="card auth-card">
+      <main className="auth-card">
+        <Frog size={72} className="auth-frog" />
         <div className="seg" role="tablist" aria-label="Account">
           <button role="tab" type="button" aria-selected={signup} className={signup ? "active" : ""} onClick={() => { setMode("signup"); setError(""); }}>Begin</button>
           <button role="tab" type="button" aria-selected={!signup} className={!signup ? "active" : ""} onClick={() => { setMode("signin"); setError(""); }}>Sign in</button>
         </div>
         <h1>{signup ? "Begin where you are" : "Welcome back"}</h1>
-        <p className="muted">{signup ? "Pick a username and a password. Nothing else needed." : "Your stories and sits are right where you left them."}</p>
+        <p className="muted">{signup ? "Pick a username and a password. That's the whole ceremony." : "Your path, stories and sits are right where you left them."}</p>
         <form onSubmit={submit} noValidate>
           <label htmlFor={ids.user}>Username</label>
           <input id={ids.user} autoComplete="username" autoCapitalize="none" spellCheck={false} value={username} onChange={(e) => setUsername(e.target.value)} placeholder="e.g. quiet_river" aria-describedby={error ? ids.err : undefined} />
           <label htmlFor={ids.pass}>Password</label>
           <input id={ids.pass} type="password" autoComplete={signup ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={signup ? "At least 8 characters" : "Your password"} />
           {error && <p id={ids.err} className="error" role="alert">{error}</p>}
-          <button className="btn-primary btn-lg" disabled={busy}>{busy ? (signup ? "Creating your account…" : "Signing in…") : (signup ? "Create account" : "Sign in")}</button>
+          <button className="btn-ink btn-lg" disabled={busy}>{busy ? (signup ? "Creating your account…" : "Signing in…") : (signup ? "Create account" : "Sign in")}</button>
         </form>
         <p className="fine">There&apos;s no password reset yet, so pick one you&apos;ll remember. What you write is sent to an AI provider to generate the guide&apos;s replies.</p>
       </main>
