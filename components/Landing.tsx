@@ -9,7 +9,7 @@ const STONES = [
   { title: "Sit", body: "Sit, listen, walk barefoot, look at the sky. A few minutes done for real beats a library of books about it." },
 ];
 
-const TEACHERS = ["Jesus", "Buddha", "Ramana", "Nisargadatta", "Zen", "Lao Tzu", "Tolle", "Krishnamurti", "Osho", "Bashar", "Neville", "Transurfing", "Crone", "Dispenza", "Neuroscience"];
+const TEACHERS = ["Jesus", "Buddha", "Lao Tzu", "Chuang Tzu", "Bodhidharma", "Daikaku", "Bukkō", "Bashō", "Ramana", "Nisargadatta", "Kabir", "Rumi", "Rabia", "Heraclitus", "Socrates", "Marcus Aurelius", "Eckhart", "Osho", "Krishnamurti", "Tolle", "Alan Watts", "Bashar", "Neville", "Neuroscience"];
 
 export function Landing() {
   return (
@@ -53,7 +53,7 @@ export function Landing() {
 
         <section className="lineage">
           <h2>Many fingers, one moon</h2>
-          <p className="muted">Koan borrows from teachers old and new, and holds them all lightly. The point is never the finger.</p>
+          <p className="muted">Koan borrows from masters, poets and philosophers across thirty centuries, and holds them all lightly. The point is never the finger.</p>
           <ul>{TEACHERS.map((t) => <li key={t}><Seal text={t} />{t}</li>)}</ul>
         </section>
 
