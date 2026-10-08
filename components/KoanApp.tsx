@@ -46,8 +46,13 @@ export default function KoanApp({ user }: { user: string }) {
         <Logo />
         <details className="me-menu">
           <summary>{user}</summary>
-          <button className="link" onClick={signOut}>Sign out</button>
+          <div className="menu">
+            <a className="link" href="/api/account/export" download>Download my journal</a>
+            <button className="link" onClick={signOut}>Sign out</button>
+            <button className="link danger" onClick={() => (document.getElementById("delete-dialog") as HTMLDialogElement | null)?.showModal()}>Delete my account</button>
+          </div>
         </details>
+        <DeleteDialog />
       </header>
 
       <nav className="dock" aria-label="Sections">
@@ -70,6 +75,35 @@ export default function KoanApp({ user }: { user: string }) {
           : <Stillness journal={journal} act={act} chosen={practice} choose={setPractice} />}
       </main>
     </div>
+  );
+}
+
+function DeleteDialog() {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function confirmDelete(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true); setError("");
+    try {
+      await api("/api/account/delete", { password });
+      window.location.href = "/";
+    } catch (err) { setError((err as Error).message); setBusy(false); }
+  }
+  return (
+    <dialog id="delete-dialog" className="dialog" onClose={() => { setPassword(""); setError(""); }}>
+      <form onSubmit={confirmDelete}>
+        <h2>Delete your account?</h2>
+        <p className="muted">This erases your account, conversations, stories, sits and discoveries for good. There&apos;s no undo. You might want to download your journal first.</p>
+        <label htmlFor="delete-pass">Type your password to confirm</label>
+        <input id="delete-pass" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        {error && <p className="error" role="alert">{error}</p>}
+        <div className="row">
+          <button type="button" className="btn-ghost" onClick={(e) => (e.currentTarget.closest("dialog") as HTMLDialogElement).close()}>Keep it</button>
+          <button className="btn-ink danger" disabled={busy || password.length < 8}>{busy ? "Deleting…" : "Delete forever"}</button>
+        </div>
+      </form>
+    </dialog>
   );
 }
 

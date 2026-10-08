@@ -1,7 +1,7 @@
 import "server-only";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { BlobPreconditionFailedError, get, put } from "@vercel/blob";
+import { BlobPreconditionFailedError, del, get, put } from "@vercel/blob";
 
 /**
  * Tiny JSON document store. Private Vercel Blob in deployments (BLOB_READ_WRITE_TOKEN),
@@ -59,4 +59,11 @@ export async function writeDoc(k: string, value: unknown, opts: { createOnly?: b
     return;
   }
   await fs.writeFile(file, body);
+}
+
+/** Removes a document; a missing one is fine. */
+export async function deleteDoc(k: string) {
+  const p = key(k);
+  if (blobReady()) { await del(p); return; }
+  await fs.rm(path.join(LOCAL_DIR, p), { force: true });
 }

@@ -12,6 +12,7 @@
   --line: #ddd4c3;
   --seal: #c8432c;
   --seal-soft: #f6e1d9;
+  --on-seal: #fff;
   --moss: #5f7146;
   --moss-soft: #e7eadb;
   --wash: #ebe4d4;
@@ -33,6 +34,7 @@
     --line: #34302a;
     --seal: #e2634a;
     --seal-soft: #3a221c;
+    --on-seal: #151412;
     --moss: #a8b98a;
     --moss-soft: #262a1f;
     --wash: #24211d;
@@ -103,7 +105,7 @@ textarea { resize: vertical }
 .seal {
   display: inline-grid; place-items: center; flex: none;
   width: 26px; height: 26px; border-radius: 5px;
-  background: var(--seal); color: var(--paper);
+  background: var(--seal); color: var(--on-seal);
   font-family: var(--font-display), serif; font-size: .9rem; line-height: 1;
   transform: rotate(-4deg);
 }
@@ -189,7 +191,14 @@ textarea { resize: vertical }
 .me-menu { position: relative; font-size: .85rem; color: var(--muted) }
 .me-menu summary { cursor: pointer; list-style: none; padding: 4px 0 }
 .me-menu summary::-webkit-details-marker { display: none }
-.me-menu[open] .link { position: absolute; right: 0; top: 100%; white-space: nowrap; background: var(--surface); padding: 8px 14px; border-radius: var(--radius); border: 1px solid var(--line) }
+.me-menu .menu { position: absolute; right: 0; top: 100%; z-index: 6; display: grid; gap: 10px; justify-items: end; white-space: nowrap; background: var(--surface); padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--line) }
+.link.danger { color: var(--seal) }
+.dialog { width: min(420px, calc(100vw - 32px)); padding: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); color: var(--ink) }
+.dialog::backdrop { background: rgb(0 0 0 / .35) }
+.dialog form { display: grid; gap: 12px }
+.dialog label { font-size: .85rem; color: var(--muted) }
+.dialog .row { justify-content: flex-end; margin-top: 6px }
+.btn-ink.danger { background: var(--seal); color: var(--on-seal) }
 .app-main { flex: 1; padding: 12px 20px 24px }
 .settling { display: grid; justify-items: center; gap: 12px; padding: 18vh 0; color: var(--moss) }
 
@@ -203,7 +212,7 @@ textarea { resize: vertical }
 .dock button { position: relative; flex: 0 1 110px; display: grid; justify-items: center; gap: 2px; padding: 6px 4px; color: var(--muted); font-size: .75rem }
 .dock button.active { color: var(--ink) }
 .dock button.active::after { content: ""; position: absolute; bottom: 0; width: 5px; height: 5px; border-radius: 50%; background: var(--seal) }
-.dock .badge { position: absolute; top: 2px; left: calc(50% + 8px); min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--seal); color: var(--paper); font-size: .66rem; display: grid; place-items: center }
+.dock .badge { position: absolute; top: 2px; left: calc(50% + 8px); min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--seal); color: var(--on-seal); font-size: .66rem; display: grid; place-items: center }
 
 /* Talk */
 .talk { display: flex; flex-direction: column; gap: 18px; min-height: 64dvh }
@@ -283,3 +292,8 @@ textarea { resize: vertical }
 .sits { display: grid; font-size: .9rem }
 .sits li { display: grid; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--line) }
 .sits em { color: var(--muted) }
+
+/* Error and not-found pages */
+.lost { min-height: 100dvh; display: grid; place-items: center; align-content: center; gap: 16px; padding: 24px 20px; text-align: center }
+.lost svg { color: var(--moss) }
+.lost p { max-width: 40ch; color: var(--ink-soft) }

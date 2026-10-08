@@ -19,7 +19,6 @@ export const metadata: Metadata = {
     description: "Not another voice in your head. A friend who keeps asking: is that true? Who is noticing?",
     type: "website",
     siteName: "Koan",
-    images: [{ url: "/icons/icon-512.png", width: 512, height: 512, alt: "Koan" }],
   },
 };
 

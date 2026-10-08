@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash, createHmac, randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
-import { ConflictError, readDoc, writeDoc } from "./store";
+import { ConflictError, deleteDoc, readDoc, writeDoc } from "./store";
 import { HttpError } from "./guard";
 
 /**
@@ -75,6 +75,13 @@ export async function verifyAccount(username: string, password: string): Promise
   const expected = doc ? Buffer.from(doc.hash, "base64url") : randomBytes(64);
   if (!doc || expected.length !== hash.length || !timingSafeEqual(expected, hash)) throw new HttpError(401, "That username and password don’t match.");
   return { id: doc.id, username: doc.username };
+}
+
+/** Permanently deletes an account and everything stored for it, after re-checking the password. */
+export async function deleteAccount(username: string, password: string) {
+  const user = await verifyAccount(username, password);
+  await deleteDoc(`journals/${user.id}`);
+  await deleteDoc(`accounts/${user.id}`);
 }
 
 /* ---------------- session cookie ---------------- */

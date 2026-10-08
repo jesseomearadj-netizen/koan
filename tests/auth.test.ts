@@ -71,3 +71,11 @@ test("sign-out cookie expires immediately", () => {
   assert.match(auth.sessionSetCookie(""), /Max-Age=0/);
   assert.match(auth.sessionSetCookie("tok"), /HttpOnly; SameSite=Lax/);
 });
+
+test("deleting an account needs the right password and removes it", async () => {
+  await auth.createAccount("leaving_lu", "goodbye friend");
+  await assert.rejects(auth.deleteAccount("leaving_lu", "wrong password"), /don’t match/);
+  await auth.deleteAccount("leaving_lu", "goodbye friend");
+  await assert.rejects(auth.verifyAccount("leaving_lu", "goodbye friend"), /don’t match/);
+  assert.equal((await auth.createAccount("leaving_lu", "a fresh start")).username, "leaving_lu", "the name is free again");
+});
