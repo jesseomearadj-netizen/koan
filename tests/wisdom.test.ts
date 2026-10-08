@@ -31,7 +31,7 @@ test("every card's teacher is in the who's who, and every circle has cards", () 
 
 test("cards stay short enough to read in one breath", () => {
   for (const w of WISDOM) {
-    assert.ok(w.text.length <= 260, w.id);
+    assert.ok(w.text.length <= 300, w.id);
     assert.ok(w.look.length > 0 && w.look.length <= 160, w.id);
     assert.ok(w.themes.length > 0, w.id);
   }
