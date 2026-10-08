@@ -280,6 +280,10 @@ textarea { resize: vertical }
 .enso-clock .clock { position: absolute; font-family: var(--font-display), serif; font-size: 2.6rem; font-variant-numeric: tabular-nums; color: var(--ink) }
 .mins { display: flex; align-items: center; gap: 8px; color: var(--muted) }
 .mins input { width: 64px; text-align: center; font-size: 1.1rem }
+.bells { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px }
+.bells button { padding: 4px 1px; font-size: .9rem; color: var(--muted); border-bottom: 1.5px solid transparent }
+.bells button:hover { color: var(--ink) }
+.bells button.active { color: var(--ink); border-bottom-color: var(--seal) }
 .after { display: grid; gap: 10px; width: 100%; text-align: left }
 .after label { font-size: .85rem; color: var(--muted) }
 .practices { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px }
@@ -299,3 +303,10 @@ textarea { resize: vertical }
 .lost p { max-width: 40ch; color: var(--ink-soft) }
 .auth-card label.check { display: flex; gap: 10px; align-items: center; color: var(--ink-soft); font-size: .9rem; margin-top: 14px }
 .auth-card label.check input { width: 18px; height: 18px; accent-color: var(--ink); flex: none }
+
+/* A new reply inks in word by word, then the question, card and experiment rise in after it. */
+.ink-in { opacity: 0; animation: ink-in .7s ease-out forwards }
+.rise { opacity: 0; animation: rise .8s ease-out forwards }
+@keyframes ink-in { from { opacity: 0; filter: blur(3px) } to { opacity: 1; filter: none } }
+@keyframes rise { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+@media (prefers-reduced-motion: reduce) { .ink-in, .rise { animation: none; opacity: 1 } }

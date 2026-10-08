@@ -7,6 +7,7 @@ import type { Experiment, GuideTurn, Journal, Message, NarrativeStatus } from "@
 import { QUESTS, WISDOM, wisdomOfDay, type Quest } from "@/lib/wisdom";
 import { WisdomCard } from "./WisdomCard";
 import { Enso, Frog, Icon, type IconName } from "./Ink";
+import { BELLS, bellLength, newAudio, preview, saveBell, savedBell, strike, type BellId } from "@/lib/bells";
 
 type Tab = "talk" | "path" | "stories" | "stillness";
 
@@ -112,6 +113,7 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
   const [demo, setDemo] = useState(false);
+  const [fresh, setFresh] = useState<number | null>(null);
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [journal.messages.length, pending]);
@@ -124,6 +126,7 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
     try {
       const d = await api<{ turn: GuideTurn; live: boolean; journal: Journal }>("/api/guide", { text: t });
       setJournal(d.journal);
+      setFresh(d.journal.messages.at(-1)?.at ?? null);
       setDemo(!d.live && !d.turn.care);
     } catch (err) {
       setText(t);
@@ -148,7 +151,7 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
         </div>
       )}
       <ol className="thread">
-        {journal.messages.map((m, i) => <Bubble key={`${m.at}-${i}`} m={m} onTry={onTry} />)}
+        {journal.messages.map((m, i) => <Bubble key={`${m.at}-${i}`} m={m} onTry={onTry} reveal={m.role === "guide" && m.at === fresh} />)}
         {pending && <li className="me-line">{pending}</li>}
         {pending && <li className="guide-line typing" aria-label="Koan is pondering"><Enso size={22} stroke={12} className="pondering" /><span className="muted">pondering…</span></li>}
       </ol>
@@ -164,17 +167,26 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
   );
 }
 
-function Bubble({ m, onTry }: { m: Message; onTry: (x: Experiment) => void }) {
+// A new reply is inked in word by word, top to bottom; replies already on the page just sit there.
+function Bubble({ m, onTry, reveal }: { m: Message; onTry: (x: Experiment) => void; reveal?: boolean }) {
   if (m.role === "user") return <li className="me-line">{m.text}</li>;
+  const words = m.text.split(/(\s+)/);
+  const step = Math.min(45, 2200 / Math.max(1, words.length / 2));
+  let t = 0;
+  const after = () => ({ style: { animationDelay: `${(t += 260)}ms` } as React.CSSProperties, className: "rise" });
+  const text = reveal ? words.map((w, i) => (/^\s+$/.test(w) ? w : <span key={i} className="ink-in" style={{ animationDelay: `${(t = (i / 2) * step)}ms` }}>{w}</span>)) : m.text;
+  const q = reveal && m.question ? after() : null;
+  const card = reveal && m.wisdom ? after() : null;
+  const exp = reveal && m.experiment ? after() : null;
   return (
-    <li className={`guide-line${m.care ? " care" : ""}`}>
+    <li className={`guide-line${m.care ? " care" : ""}${reveal ? " revealing" : ""}`}>
       <Enso size={22} stroke={12} className="avatar" />
       <div className="guide-body">
-      <p>{m.text}</p>
-      {m.question && <p className="question">{m.question}</p>}
-      {m.wisdom && <WisdomCard id={m.wisdom} compact />}
+      <p aria-label={reveal ? m.text : undefined}>{text}</p>
+      {m.question && <p className={`question ${q?.className ?? ""}`} style={q?.style}>{m.question}</p>}
+      {m.wisdom && <div className={card?.className} style={card?.style}><WisdomCard id={m.wisdom} compact /></div>}
       {m.experiment && (
-        <div className="experiment">
+        <div className={`experiment ${exp?.className ?? ""}`} style={exp?.style}>
           <strong>Try: {m.experiment.title}</strong>
           <p>{m.experiment.invitation}</p>
           <button className="btn-ghost small" onClick={() => onTry(m.experiment!)}>Do it now</button>
@@ -270,35 +282,73 @@ function Stories({ journal, act }: { journal: Journal; act: (b: unknown) => Prom
   );
 }
 
-function chime() {
-  try {
-    const ctx = new AudioContext();
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.frequency.value = 528; o.type = "sine";
-    g.gain.setValueAtTime(0.0001, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.05);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 4);
-    o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 4);
-  } catch { /* no audio */ }
-}
+type Running = { startedAt: number; endsAt: number; total: number };
 
 function Stillness({ journal, act, chosen, choose }: { journal: Journal; act: (b: unknown) => Promise<void>; chosen: Practice | Experiment | null; choose: (p: Practice | Experiment | null) => void }) {
   const [minutes, setMinutes] = useState(5);
-  const [left, setLeft] = useState<number | null>(null);
+  const [bell, setBell] = useState<BellId>("bowl");
+  const [running, setRunning] = useState<Running | null>(null);
+  const [now, setNow] = useState(0);
   const [done, setDone] = useState<number | null>(null);
   const [note, setNote] = useState("");
-  const started = useRef(0);
+  const audio = useRef<AudioContext | null>(null);
+  const wake = useRef<{ release: () => Promise<void> } | null>(null);
 
+  useEffect(() => setBell(savedBell()), []);
   useEffect(() => { if (chosen && "minutes" in chosen) setMinutes(chosen.minutes); }, [chosen]);
-  useEffect(() => {
-    if (left === null) return;
-    if (left <= 0) { chime(); setDone(minutes); setLeft(null); return; }
-    const t = setTimeout(() => setLeft(Math.max(0, minutes * 60 - Math.round((Date.now() - started.current) / 1000))), 500);
-    return () => clearTimeout(t);
-  }, [left, minutes]);
 
-  const start = () => { chime(); started.current = Date.now(); setDone(null); setLeft(minutes * 60); };
-  const stop = () => { const m = Math.round((Date.now() - started.current) / 6000) / 10; setLeft(null); setDone(m); };
+  const release = (closeAfter = 0) => {
+    const ctx = audio.current;
+    audio.current = null;
+    if (ctx) setTimeout(() => void ctx.close().catch(() => {}), closeAfter);
+    void wake.current?.release().catch(() => {});
+    wake.current = null;
+  };
+
+  // The clock ticks on its own, and the time left always comes from the end time,
+  // so a slow or throttled tick can never freeze or drift the display.
+  useEffect(() => {
+    if (!running) return;
+    const tick = () => {
+      const t = Date.now();
+      setNow(t);
+      if (t >= running.endsAt) {
+        setRunning(null);
+        setDone(running.total / 60);
+        release(bellLength(bell) * 1000 + 500);
+      }
+    };
+    tick();
+    const id = setInterval(tick, 250);
+    document.addEventListener("visibilitychange", tick);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", tick); };
+  }, [running, bell]);
+
+  useEffect(() => () => release(), []);
+
+  const start = () => {
+    const total = minutes * 60;
+    const t = Date.now();
+    // Both bells are scheduled up front on the audio clock, so the closing bell rings on time
+    // even if the browser slows the page's timers while the screen is off or the tab is hidden.
+    const ctx = newAudio();
+    if (ctx) { strike(ctx, bell); strike(ctx, bell, ctx.currentTime + total); }
+    audio.current = ctx;
+    const nav = navigator as Navigator & { wakeLock?: { request: (t: "screen") => Promise<{ release: () => Promise<void> }> } };
+    nav.wakeLock?.request("screen").then((l) => { wake.current = l; }).catch(() => {});
+    setDone(null);
+    setNow(t);
+    setRunning({ startedAt: t, endsAt: t + total * 1000, total });
+  };
+  const stop = () => {
+    if (!running) return;
+    const m = Math.round((Date.now() - running.startedAt) / 6000) / 10;
+    release();
+    setRunning(null);
+    setDone(m);
+  };
+  const pickBell = (b: BellId) => { setBell(b); saveBell(b); preview(b); };
+  const left = running ? Math.max(0, Math.ceil((running.endsAt - now) / 1000)) : 0;
   const total = journal.sits.reduce((s, x) => s + x.minutes, 0);
   const streak = sitStreak(journal.sits);
 
@@ -306,10 +356,10 @@ function Stillness({ journal, act, chosen, choose }: { journal: Journal; act: (b
     <section className="stillness">
       <div className="timer">
         {chosen ? <><p className="kicker">{"lens" in chosen ? chosen.lens : "From your conversation"}</p><h1>{chosen.title}</h1><p>{chosen.invitation}</p></> : <><h1>Sit for a while</h1><p className="muted">Pick an experiment below, or just sit. Nothing to achieve. Nobody is grading.</p></>}
-        {left !== null ? (
+        {running ? (
           <>
             <div className="enso-clock">
-              <Enso size={220} stroke={7} track progress={Math.max(0.02, 1 - left / (minutes * 60))} />
+              <Enso size={220} stroke={7} track progress={Math.max(0.02, 1 - left / running.total)} />
               <p className="clock" aria-live="off">{Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}</p>
             </div>
             <button className="btn-ghost" onClick={stop}>End early</button>
@@ -321,13 +371,18 @@ function Stillness({ journal, act, chosen, choose }: { journal: Journal; act: (b
             <div className="row"><button className="btn-ink">Save sit</button><button type="button" className="btn-ghost" onClick={() => setDone(null)}>Don&apos;t save</button></div>
           </form>
         ) : (
+          <>
+          <div className="bells" role="radiogroup" aria-label="Bell">
+            {BELLS.map((b) => <button key={b.id} type="button" role="radio" aria-checked={bell === b.id} className={bell === b.id ? "active" : ""} onClick={() => pickBell(b.id)}>{b.label}</button>)}
+          </div>
           <div className="row">
             <label className="mins">Minutes <input type="number" min={1} max={120} value={minutes} onChange={(e) => setMinutes(Math.min(120, Math.max(1, Number(e.target.value) || 1)))} /></label>
             <button className="btn-ink btn-lg" onClick={start}>Begin</button>
             {chosen && <button className="btn-ghost" onClick={() => choose(null)}>Clear</button>}
           </div>
+          </>
         )}
-        <p className="fine">{journal.sits.length} sits · {Math.round(total)} minutes{streak ? ` · ${streak}-day streak` : ""}</p>
+        <p className="fine">{journal.sits.length} {journal.sits.length === 1 ? "sit" : "sits"} · {Math.round(total)} {Math.round(total) === 1 ? "minute" : "minutes"}{streak ? ` · ${streak}-day streak` : ""}</p>
       </div>
 
       <h2>Experiments</h2>
