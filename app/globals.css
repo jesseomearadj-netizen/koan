@@ -221,9 +221,10 @@ textarea { resize: vertical }
 .welcome > p.muted { max-width: 48ch }
 .welcome .kicker { margin-top: 12px }
 .welcome .wisdom { width: 100% }
-.starters { display: flex; flex-wrap: wrap; gap: 8px }
+.starters { display: flex; flex-wrap: wrap; gap: 8px; min-height: 84px }
 .chip-btn { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); font-size: .88rem; text-align: left; color: var(--ink-soft); transition: border-color .2s }
 .chip-btn:hover { border-color: var(--ink) }
+.chip-btn.more { border-style: dashed; color: var(--muted) }
 .thread { display: grid; gap: 20px }
 .thread .me-line { justify-self: end }
 .composer {

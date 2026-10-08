@@ -7,6 +7,7 @@ import type { Experiment, GuideTurn, Journal, Message, NarrativeStatus } from "@
 import { QUESTS, WISDOM, wisdomOfDay, type Quest } from "@/lib/wisdom";
 import { WisdomCard } from "./WisdomCard";
 import { Enso, Frog, Icon, type IconName } from "./Ink";
+import { pickStarters } from "@/lib/starters";
 import { BELLS, bellLength, newAudio, preview, saveBell, savedBell, saveShowClock, savedShowClock, strike, type BellId } from "@/lib/bells";
 
 type Tab = "talk" | "path" | "stories" | "stillness";
@@ -114,6 +115,9 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
   const [pending, setPending] = useState<string | null>(null);
   const [demo, setDemo] = useState(false);
   const [fresh, setFresh] = useState<number | null>(null);
+  // Drawn after mount, so the server and browser render the same page first.
+  const [starters, setStarters] = useState<string[]>([]);
+  useEffect(() => setStarters(pickStarters()), []);
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [journal.messages.length, pending]);
@@ -142,9 +146,10 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
           <h1>What&apos;s here right now?</h1>
           <p className="muted">A worry, a win, a thought that keeps looping, or nothing at all. Start anywhere. Koan won&apos;t tell you who you are; it&apos;ll help you look.</p>
           <div className="starters">
-            {["I can't stop overthinking tonight.", "I feel stuck and don't know why.", "Something good happened and I don't trust it.", "I want to try meditating but I'm restless."].map((s) => (
-              <button key={s} className="chip-btn" onClick={() => setText(s)}>{s}</button>
+            {starters.map((s) => (
+              <button key={s} className="chip-btn rise" onClick={() => setText(s)}>{s}</button>
             ))}
+            {starters.length > 0 && <button className="chip-btn more" onClick={() => setStarters(pickStarters())} aria-label="Show other ideas">Other ideas</button>}
           </div>
           <p className="kicker">Today&apos;s pebble of wisdom</p>
           <WisdomCard card={wisdomOfDay()} />
