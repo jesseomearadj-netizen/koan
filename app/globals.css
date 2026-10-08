@@ -297,3 +297,5 @@ textarea { resize: vertical }
 .lost { min-height: 100dvh; display: grid; place-items: center; align-content: center; gap: 16px; padding: 24px 20px; text-align: center }
 .lost svg { color: var(--moss) }
 .lost p { max-width: 40ch; color: var(--ink-soft) }
+.auth-card label.check { display: flex; gap: 10px; align-items: center; color: var(--ink-soft); font-size: .9rem; margin-top: 14px }
+.auth-card label.check input { width: 18px; height: 18px; accent-color: var(--ink); flex: none }

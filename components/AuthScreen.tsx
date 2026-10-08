@@ -13,6 +13,7 @@ export function AuthScreen({ initialMode }: { initialMode: AuthMode }) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [oldEnough, setOldEnough] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const ids = { user: useId(), pass: useId(), err: useId() };
@@ -24,12 +25,13 @@ export function AuthScreen({ initialMode }: { initialMode: AuthMode }) {
     const u = username.trim();
     if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]{2,23}$/.test(u)) { setError("Usernames are 3–24 characters: letters, numbers, dots, dashes or underscores."); return; }
     if (password.length < 8) { setError("Use at least 8 characters for your password."); return; }
+    if (signup && !oldEnough) { setError("Koan accounts are for people 13 and older."); return; }
     setBusy(true);
     setError("");
     try {
       const r = await fetch(signup ? "/api/auth/signup" : "/api/auth/login", {
         method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store",
-        body: JSON.stringify({ username: u, password }),
+        body: JSON.stringify(signup ? { username: u, password, over13: oldEnough } : { username: u, password }),
       });
       if (!r.ok) {
         const body = (await r.json().catch(() => ({}))) as { error?: string };
@@ -59,6 +61,7 @@ export function AuthScreen({ initialMode }: { initialMode: AuthMode }) {
           <input id={ids.user} autoComplete="username" autoCapitalize="none" spellCheck={false} value={username} onChange={(e) => setUsername(e.target.value)} placeholder="e.g. quiet_river" aria-describedby={error ? ids.err : undefined} />
           <label htmlFor={ids.pass}>Password</label>
           <input id={ids.pass} type="password" autoComplete={signup ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={signup ? "At least 8 characters" : "Your password"} />
+          {signup && <label className="check"><input type="checkbox" checked={oldEnough} onChange={(e) => setOldEnough(e.target.checked)} /> I&apos;m 13 or older</label>}
           {error && <p id={ids.err} className="error" role="alert">{error}</p>}
           <button className="btn-ink btn-lg" disabled={busy}>{busy ? (signup ? "Creating your account…" : "Signing in…") : (signup ? "Create account" : "Sign in")}</button>
         </form>
