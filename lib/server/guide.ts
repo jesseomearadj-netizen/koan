@@ -117,7 +117,11 @@ export async function guideTurn(text: string, journal: Journal, req: Request): P
     recentSits && `Their recent stillness sits:\n${recentSits}`,
   ].filter(Boolean).join("\n\n");
 
-  const history: ChatMessage[] = journal.messages.slice(-12).map((m) => ({ role: m.role === "user" ? "user" : "assistant", content: m.text }));
+  // Earlier guide turns go back in the same JSON shape the model must answer in. Sending them as
+  // plain prose taught the model to drop the JSON from the second turn on.
+  const history: ChatMessage[] = journal.messages.slice(-12).map((m) => m.role === "user"
+    ? { role: "user", content: m.text }
+    : { role: "assistant", content: JSON.stringify({ reply: m.text, question: m.question ?? null, narrative: null, experiment: m.experiment ?? null, wisdom: m.wisdom ?? null, care: !!m.care }) });
   const messages: ChatMessage[] = [
     { role: "system", content: GUIDE_SYSTEM + (context ? `\n\n${context}` : "") },
     ...history,

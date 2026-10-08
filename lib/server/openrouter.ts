@@ -46,11 +46,32 @@ export async function chatJSON(opts: { name: string; schema: object; messages: C
     res = await send(false);
   }
   if (!res.ok) throw await providerError(res);
-  const data = (await res.json()) as { choices?: { message?: { content?: string; refusal?: string } }[] };
-  const msg = data.choices?.[0]?.message;
+  const data = (await res.json()) as { choices?: { message?: { content?: string; refusal?: string }; finish_reason?: string }[] };
+  const choice = data.choices?.[0];
+  const msg = choice?.message;
   if (msg?.refusal) throw new HttpError(422, "The guide could not respond to that. Try putting it another way.");
-  const content = (msg?.content || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "");
-  try { return JSON.parse(content); } catch { throw new HttpError(502, "The guide sent an unreadable answer. Try again."); }
+  const parsed = parseLooseJSON(msg?.content || "");
+  if (parsed === undefined) {
+    console.error(`[openrouter] unreadable answer from ${opts.model} (finish ${choice?.finish_reason}): ${(msg?.content || "").slice(0, 300)}`);
+    throw new HttpError(502, "The guide sent an unreadable answer. Try again.");
+  }
+  return parsed;
+}
+
+/**
+ * Models in plain JSON mode sometimes wrap the object in a code fence or a sentence of prose.
+ * Take the outermost {...}; if there is none but there is prose, hand back the prose as the reply.
+ */
+export function parseLooseJSON(content: string): unknown {
+  const text = content.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
+  if (!text) return undefined;
+  try { return JSON.parse(text); } catch { /* keep looking */ }
+  const a = text.indexOf("{"), b = text.lastIndexOf("}");
+  if (a !== -1 && b > a) {
+    try { return JSON.parse(text.slice(a, b + 1)); } catch { /* fall through */ }
+  }
+  if (a === -1) return { reply: text };
+  return undefined;
 }
 
 /** chatJSON across models in order: the next model is tried only when the provider fails (never on 429). */
