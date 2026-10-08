@@ -221,9 +221,10 @@ textarea { resize: vertical }
 .welcome > p.muted { max-width: 48ch }
 .welcome .kicker { margin-top: 12px }
 .welcome .wisdom { width: 100% }
-.starters { display: flex; flex-wrap: wrap; gap: 8px }
+.starters { display: flex; flex-wrap: wrap; gap: 8px; min-height: 84px }
 .chip-btn { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); font-size: .88rem; text-align: left; color: var(--ink-soft); transition: border-color .2s }
 .chip-btn:hover { border-color: var(--ink) }
+.chip-btn.more { border-style: dashed; color: var(--muted) }
 .thread { display: grid; gap: 20px }
 .thread .me-line { justify-self: end }
 .composer {
@@ -251,6 +252,13 @@ textarea { resize: vertical }
 .quest.next .stone { background: var(--seal-soft); color: var(--seal); box-shadow: 0 0 0 1.5px var(--seal) }
 .quest.done .stone { background: var(--ink); color: var(--paper) }
 .quest-body { display: grid; gap: 14px; margin: 6px 0 18px; padding: 4px 0 4px 18px; border-left: 1px solid var(--line) }
+.quest-body { animation: unfold 1.2s cubic-bezier(.3,.6,.3,1) both }
+.quest-body > * { animation: rise .9s ease-out both }
+.quest-body > :nth-child(1) { animation-delay: .15s }
+.quest-body > :nth-child(2) { animation-delay: .7s }
+.quest-body > :nth-child(3) { animation-delay: 1.15s }
+.quest-body > :nth-child(4) { animation-delay: 1.5s }
+@keyframes unfold { from { clip-path: inset(-40px -40px 100% -40px) } to { clip-path: inset(-40px) } }
 .quest-body form { display: grid; gap: 6px }
 .quest-body label { font-family: var(--font-display), serif; font-size: 1.05rem }
 .quest-body .btn-ink { justify-self: start; margin-top: 6px }
@@ -276,7 +284,7 @@ textarea { resize: vertical }
 /* Sit */
 .timer { display: grid; gap: 14px; text-align: center; justify-items: center; padding: 8px 0 12px }
 .timer > p { max-width: 46ch; color: var(--ink-soft) }
-.enso-clock { position: relative; display: grid; place-items: center; color: var(--ink); margin: 8px 0 }
+.enso-clock { position: relative; cursor: pointer; display: grid; place-items: center; color: var(--ink); margin: 8px 0 }
 .enso-clock .clock { position: absolute; font-family: var(--font-display), serif; font-size: 2.6rem; font-variant-numeric: tabular-nums; color: var(--ink) }
 .mins { display: flex; align-items: center; gap: 8px; color: var(--muted) }
 .mins input { width: 64px; text-align: center; font-size: 1.1rem }
@@ -309,4 +317,4 @@ textarea { resize: vertical }
 .rise { opacity: 0; animation: rise .8s ease-out forwards }
 @keyframes ink-in { from { opacity: 0; filter: blur(3px) } to { opacity: 1; filter: none } }
 @keyframes rise { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
-@media (prefers-reduced-motion: reduce) { .ink-in, .rise { animation: none; opacity: 1 } }
+@media (prefers-reduced-motion: reduce) { .ink-in, .rise, .quest-body, .quest-body > * { animation: none; opacity: 1 } }

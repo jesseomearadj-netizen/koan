@@ -7,7 +7,8 @@ import type { Experiment, GuideTurn, Journal, Message, NarrativeStatus } from "@
 import { QUESTS, WISDOM, wisdomOfDay, type Quest } from "@/lib/wisdom";
 import { WisdomCard } from "./WisdomCard";
 import { Enso, Frog, Icon, type IconName } from "./Ink";
-import { BELLS, bellLength, newAudio, preview, saveBell, savedBell, strike, type BellId } from "@/lib/bells";
+import { pickStarters } from "@/lib/starters";
+import { BELLS, bellLength, newAudio, preview, saveBell, savedBell, saveShowClock, savedShowClock, strike, type BellId } from "@/lib/bells";
 
 type Tab = "talk" | "path" | "stories" | "stillness";
 
@@ -114,6 +115,9 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
   const [pending, setPending] = useState<string | null>(null);
   const [demo, setDemo] = useState(false);
   const [fresh, setFresh] = useState<number | null>(null);
+  // Drawn after mount, so the server and browser render the same page first.
+  const [starters, setStarters] = useState<string[]>([]);
+  useEffect(() => setStarters(pickStarters()), []);
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [journal.messages.length, pending]);
@@ -142,9 +146,10 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
           <h1>What&apos;s here right now?</h1>
           <p className="muted">A worry, a win, a thought that keeps looping, or nothing at all. Start anywhere. Koan won&apos;t tell you who you are; it&apos;ll help you look.</p>
           <div className="starters">
-            {["I can't stop overthinking tonight.", "I feel stuck and don't know why.", "Something good happened and I don't trust it.", "I want to try meditating but I'm restless."].map((s) => (
-              <button key={s} className="chip-btn" onClick={() => setText(s)}>{s}</button>
+            {starters.map((s) => (
+              <button key={s} className="chip-btn rise" onClick={() => setText(s)}>{s}</button>
             ))}
+            {starters.length > 0 && <button className="chip-btn more" onClick={() => setStarters(pickStarters())} aria-label="Show other ideas">Other ideas</button>}
           </div>
           <p className="kicker">Today&apos;s pebble of wisdom</p>
           <WisdomCard card={wisdomOfDay()} />
@@ -287,6 +292,7 @@ type Running = { startedAt: number; endsAt: number; total: number };
 function Stillness({ journal, act, chosen, choose }: { journal: Journal; act: (b: unknown) => Promise<void>; chosen: Practice | Experiment | null; choose: (p: Practice | Experiment | null) => void }) {
   const [minutes, setMinutes] = useState(5);
   const [bell, setBell] = useState<BellId>("bowl");
+  const [showClock, setShowClock] = useState(true);
   const [running, setRunning] = useState<Running | null>(null);
   const [now, setNow] = useState(0);
   const [done, setDone] = useState<number | null>(null);
@@ -294,7 +300,7 @@ function Stillness({ journal, act, chosen, choose }: { journal: Journal; act: (b
   const audio = useRef<AudioContext | null>(null);
   const wake = useRef<{ release: () => Promise<void> } | null>(null);
 
-  useEffect(() => setBell(savedBell()), []);
+  useEffect(() => { setBell(savedBell()); setShowClock(savedShowClock()); }, []);
   useEffect(() => { if (chosen && "minutes" in chosen) setMinutes(chosen.minutes); }, [chosen]);
 
   const release = (closeAfter = 0) => {
@@ -348,6 +354,7 @@ function Stillness({ journal, act, chosen, choose }: { journal: Journal; act: (b
     setDone(m);
   };
   const pickBell = (b: BellId) => { setBell(b); saveBell(b); preview(b); };
+  const toggleClock = () => { setShowClock(!showClock); saveShowClock(!showClock); };
   const left = running ? Math.max(0, Math.ceil((running.endsAt - now) / 1000)) : 0;
   const total = journal.sits.reduce((s, x) => s + x.minutes, 0);
   const streak = sitStreak(journal.sits);
@@ -358,10 +365,10 @@ function Stillness({ journal, act, chosen, choose }: { journal: Journal; act: (b
         {chosen ? <><p className="kicker">{"lens" in chosen ? chosen.lens : "From your conversation"}</p><h1>{chosen.title}</h1><p>{chosen.invitation}</p></> : <><h1>Sit for a while</h1><p className="muted">Pick an experiment below, or just sit. Nothing to achieve. Nobody is grading.</p></>}
         {running ? (
           <>
-            <div className="enso-clock">
+            <button type="button" className="enso-clock" onClick={toggleClock} aria-label={showClock ? "Hide the time" : "Show the time"}>
               <Enso size={220} stroke={7} track progress={Math.max(0.02, 1 - left / running.total)} />
-              <p className="clock" aria-live="off">{Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}</p>
-            </div>
+              {showClock && <span className="clock" aria-live="off">{Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}</span>}
+            </button>
             <button className="btn-ghost" onClick={stop}>End early</button>
           </>
         ) : done !== null ? (
@@ -374,6 +381,9 @@ function Stillness({ journal, act, chosen, choose }: { journal: Journal; act: (b
           <>
           <div className="bells" role="radiogroup" aria-label="Bell">
             {BELLS.map((b) => <button key={b.id} type="button" role="radio" aria-checked={bell === b.id} className={bell === b.id ? "active" : ""} onClick={() => pickBell(b.id)}>{b.label}</button>)}
+          </div>
+          <div className="bells">
+            <button type="button" role="switch" aria-checked={showClock} className={showClock ? "active" : ""} onClick={toggleClock}>{showClock ? "Time shown" : "Time hidden"}</button>
           </div>
           <div className="row">
             <label className="mins">Minutes <input type="number" min={1} max={120} value={minutes} onChange={(e) => setMinutes(Math.min(120, Math.max(1, Number(e.target.value) || 1)))} /></label>

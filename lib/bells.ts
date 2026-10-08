@@ -1,12 +1,11 @@
 // Meditation bells, synthesised with Web Audio so there are no sound files to ship or license.
 // Each bell is a few inharmonic partials with long decays; paired, slightly detuned sines give
-// the slow "wah-wah" beating of a real bowl or gong.
+// the slow "wah-wah" beating of a real bowl.
 
-export type BellId = "bowl" | "gong" | "tingsha" | "none";
+export type BellId = "bowl" | "tingsha" | "none";
 
 export const BELLS: { id: BellId; label: string }[] = [
   { id: "bowl", label: "Singing bowl" },
-  { id: "gong", label: "Gong" },
   { id: "tingsha", label: "Tingsha" },
   { id: "none", label: "Silent" },
 ];
@@ -22,19 +21,6 @@ const VOICES: Record<Exclude<BellId, "none">, { base: number; partials: Partial[
       { ratio: 2.71, gain: 0.55, decay: 7, beat: 1.1 },
       { ratio: 5.18, gain: 0.22, decay: 3.5, beat: 1.7 },
       { ratio: 8.37, gain: 0.1, decay: 1.8 },
-    ],
-  },
-  // Low, dark, and the upper partials swell in after the strike, as a gong's do.
-  gong: {
-    base: 82, mallet: 0.12, length: 14, level: 1.7,
-    partials: [
-      { ratio: 1, gain: 1, decay: 12, beat: 0.3 },
-      { ratio: 1.47, gain: 0.6, decay: 10, attack: 0.25, beat: 0.5 },
-      { ratio: 2.03, gain: 0.5, decay: 9, attack: 0.4 },
-      { ratio: 2.56, gain: 0.35, decay: 7, attack: 0.6, beat: 0.8 },
-      { ratio: 3.19, gain: 0.25, decay: 5, attack: 0.8 },
-      { ratio: 4.33, gain: 0.15, decay: 3.5, attack: 1 },
-      { ratio: 5.62, gain: 0.08, decay: 2.5, attack: 1.1 },
     ],
   },
   // Two small cymbals touched together: bright, with fast shimmering beats.
@@ -122,4 +108,12 @@ export function savedBell(): BellId {
 }
 export function saveBell(bell: BellId) {
   try { localStorage.setItem(KEY, bell); } catch { /* storage blocked */ }
+}
+
+const CLOCK_KEY = "koan-show-clock";
+export function savedShowClock(): boolean {
+  try { return localStorage.getItem(CLOCK_KEY) !== "0"; } catch { return true; }
+}
+export function saveShowClock(show: boolean) {
+  try { localStorage.setItem(CLOCK_KEY, show ? "1" : "0"); } catch { /* storage blocked */ }
 }
