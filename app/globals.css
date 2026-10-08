@@ -276,7 +276,7 @@ textarea { resize: vertical }
 /* Sit */
 .timer { display: grid; gap: 14px; text-align: center; justify-items: center; padding: 8px 0 12px }
 .timer > p { max-width: 46ch; color: var(--ink-soft) }
-.enso-clock { position: relative; display: grid; place-items: center; color: var(--ink); margin: 8px 0 }
+.enso-clock { position: relative; cursor: pointer; display: grid; place-items: center; color: var(--ink); margin: 8px 0 }
 .enso-clock .clock { position: absolute; font-family: var(--font-display), serif; font-size: 2.6rem; font-variant-numeric: tabular-nums; color: var(--ink) }
 .mins { display: flex; align-items: center; gap: 8px; color: var(--muted) }
 .mins input { width: 64px; text-align: center; font-size: 1.1rem }
