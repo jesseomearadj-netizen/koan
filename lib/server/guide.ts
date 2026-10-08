@@ -52,8 +52,20 @@ const str = (x: unknown, n: number) => (typeof x === "string" ? x.trim().slice(0
 /** Model output is untrusted: keep only well-formed, bounded fields. */
 export function validateTurn(raw: unknown): GuideTurn | null {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
-  const reply = str(r.reply, 1500);
+  let reply = str(r.reply, 1500);
   if (!reply) return null;
+  let question = str(r.question, 300) || null;
+  // Models often end the reply with the same question they put in "question"; show it once,
+  // in the highlighted question line.
+  if (question) {
+    const norm = (x: string) => x.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    const q = norm(question);
+    if (q && norm(reply).endsWith(q)) {
+      const cut = reply.slice(0, Math.max(reply.lastIndexOf(". "), reply.lastIndexOf("! "), reply.lastIndexOf("? "), reply.lastIndexOf("\n")) + 1).trim();
+      if (cut && !norm(cut).endsWith(q)) reply = cut;
+      else question = null;
+    }
+  }
   const n = r.narrative as Record<string, unknown> | null;
   const e = r.experiment as Record<string, unknown> | null;
   const care = r.care === true;
@@ -62,7 +74,7 @@ export function validateTurn(raw: unknown): GuideTurn | null {
   const invitation = e && typeof e === "object" ? str(e.invitation, 400) : "";
   return {
     reply,
-    question: str(r.question, 300) || null,
+    question,
     narrative: story && !care ? { story, where: str(n!.where, 200) } : null,
     experiment: title && invitation && !care ? { title, invitation } : null,
     // Only cards that exist: the model can point at wisdom but never invent it.

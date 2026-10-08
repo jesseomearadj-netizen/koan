@@ -303,3 +303,10 @@ textarea { resize: vertical }
 .lost p { max-width: 40ch; color: var(--ink-soft) }
 .auth-card label.check { display: flex; gap: 10px; align-items: center; color: var(--ink-soft); font-size: .9rem; margin-top: 14px }
 .auth-card label.check input { width: 18px; height: 18px; accent-color: var(--ink); flex: none }
+
+/* A new reply inks in word by word, then the question, card and experiment rise in after it. */
+.ink-in { opacity: 0; animation: ink-in .7s ease-out forwards }
+.rise { opacity: 0; animation: rise .8s ease-out forwards }
+@keyframes ink-in { from { opacity: 0; filter: blur(3px) } to { opacity: 1; filter: none } }
+@keyframes rise { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+@media (prefers-reduced-motion: reduce) { .ink-in, .rise { animation: none; opacity: 1 } }

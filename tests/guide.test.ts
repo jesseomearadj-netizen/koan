@@ -49,3 +49,16 @@ test("the guide can only point at wisdom cards that exist", async () => {
   assert.equal(validateTurn({ reply: "Look.", wisdom: "made-up-quote" })!.wisdom, null);
   assert.equal(validateTurn({ reply: "Reach out.", wisdom: "tolle-watch", care: true })!.wisdom, null);
 });
+
+test("a question repeated at the end of the reply is shown once", async () => {
+  const { validateTurn } = await load();
+  const t = validateTurn({ reply: "Winning can feel jumpy too. What is your body bracing against right this second?", question: "What is your body bracing against right this second?" })!;
+  assert.equal(t.reply, "Winning can feel jumpy too.");
+  assert.equal(t.question, "What is your body bracing against right this second?");
+  const only = validateTurn({ reply: "What is here now?", question: "What is here now?" })!;
+  assert.equal(only.reply, "What is here now?");
+  assert.equal(only.question, null);
+  const diff = validateTurn({ reply: "Look closely.", question: "Who is looking?" })!;
+  assert.equal(diff.reply, "Look closely.");
+  assert.equal(diff.question, "Who is looking?");
+});

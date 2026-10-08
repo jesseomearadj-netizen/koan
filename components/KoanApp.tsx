@@ -113,6 +113,7 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
   const [demo, setDemo] = useState(false);
+  const [fresh, setFresh] = useState<number | null>(null);
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [journal.messages.length, pending]);
@@ -125,6 +126,7 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
     try {
       const d = await api<{ turn: GuideTurn; live: boolean; journal: Journal }>("/api/guide", { text: t });
       setJournal(d.journal);
+      setFresh(d.journal.messages.at(-1)?.at ?? null);
       setDemo(!d.live && !d.turn.care);
     } catch (err) {
       setText(t);
@@ -149,7 +151,7 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
         </div>
       )}
       <ol className="thread">
-        {journal.messages.map((m, i) => <Bubble key={`${m.at}-${i}`} m={m} onTry={onTry} />)}
+        {journal.messages.map((m, i) => <Bubble key={`${m.at}-${i}`} m={m} onTry={onTry} reveal={m.role === "guide" && m.at === fresh} />)}
         {pending && <li className="me-line">{pending}</li>}
         {pending && <li className="guide-line typing" aria-label="Koan is pondering"><Enso size={22} stroke={12} className="pondering" /><span className="muted">pondering…</span></li>}
       </ol>
@@ -165,17 +167,26 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
   );
 }
 
-function Bubble({ m, onTry }: { m: Message; onTry: (x: Experiment) => void }) {
+// A new reply is inked in word by word, top to bottom; replies already on the page just sit there.
+function Bubble({ m, onTry, reveal }: { m: Message; onTry: (x: Experiment) => void; reveal?: boolean }) {
   if (m.role === "user") return <li className="me-line">{m.text}</li>;
+  const words = m.text.split(/(\s+)/);
+  const step = Math.min(45, 2200 / Math.max(1, words.length / 2));
+  let t = 0;
+  const after = () => ({ style: { animationDelay: `${(t += 260)}ms` } as React.CSSProperties, className: "rise" });
+  const text = reveal ? words.map((w, i) => (/^\s+$/.test(w) ? w : <span key={i} className="ink-in" style={{ animationDelay: `${(t = (i / 2) * step)}ms` }}>{w}</span>)) : m.text;
+  const q = reveal && m.question ? after() : null;
+  const card = reveal && m.wisdom ? after() : null;
+  const exp = reveal && m.experiment ? after() : null;
   return (
-    <li className={`guide-line${m.care ? " care" : ""}`}>
+    <li className={`guide-line${m.care ? " care" : ""}${reveal ? " revealing" : ""}`}>
       <Enso size={22} stroke={12} className="avatar" />
       <div className="guide-body">
-      <p>{m.text}</p>
-      {m.question && <p className="question">{m.question}</p>}
-      {m.wisdom && <WisdomCard id={m.wisdom} compact />}
+      <p aria-label={reveal ? m.text : undefined}>{text}</p>
+      {m.question && <p className={`question ${q?.className ?? ""}`} style={q?.style}>{m.question}</p>}
+      {m.wisdom && <div className={card?.className} style={card?.style}><WisdomCard id={m.wisdom} compact /></div>}
       {m.experiment && (
-        <div className="experiment">
+        <div className={`experiment ${exp?.className ?? ""}`} style={exp?.style}>
           <strong>Try: {m.experiment.title}</strong>
           <p>{m.experiment.invitation}</p>
           <button className="btn-ghost small" onClick={() => onTry(m.experiment!)}>Do it now</button>
