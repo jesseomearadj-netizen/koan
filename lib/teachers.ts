@@ -117,6 +117,7 @@ export const TEACHERS: Record<string, Teacher> = {
   // Science
   "Neuroscience": { circle: "Science", about: "What brain research has found (held lightly, like all maps)" },
   "Psychology": { circle: "Science", about: "What studies of the mind have found" },
+  "William James": { circle: "Science", about: "Father of American psychology, 1842–1910" },
 };
 
 export const teacherInfo = (name: string): Teacher => TEACHERS[name] ?? { circle: "Teachers of today", about: "" };
