@@ -22,3 +22,7 @@ Also worth personalising: the "Meet Jesse" bio and the "Photo coming" portrait p
 3. Deploy. The Koan project is unaffected.
 
 To give it its own repository later, copy this folder into the new repo's root.
+
+## Adding writing and films
+
+Add entries to the `WORKS` list near the bottom of `index.html`, newest first. Each needs a `kind` (Writing, Film or Experiment), `title`, `blurb` and `url` (a YouTube link, a Substack post, etc.); `date` and `image` are optional. While the list is empty, the section shows three "coming soon" cards.
