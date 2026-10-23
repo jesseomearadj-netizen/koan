@@ -8,7 +8,7 @@ It's one static file, `index.html`, with no build step. It lives here for now an
 
 At the bottom of `index.html`, in the `CONTACT` block:
 
-- `email`: the address people should write to (shown on the page with a copy button)
+- `email`: a practical contact address, shown as a small link in the footer
 - `booking`: a scheduling link (Calendly, cal.com, etc.) for "Book a time"
 - `social` and `socialHandle`: the profile link and handle for "Follow"
 - `PRICES` (just below): the session and four-session prices in "Ways to work together"

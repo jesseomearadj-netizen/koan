@@ -213,7 +213,7 @@ a.work:hover h3 { color: var(--moss); }
 .connect { background: var(--linen-2); }
 .connect .wrap { padding-block: clamp(72px, 9vw, 120px); display: grid; gap: 44px; }
 .connect h2 { font-size: clamp(2.2rem, 4.5vw, 3.4rem); }
-.ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.ways { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; max-width: 860px; }
 .way { border-top: 1px solid var(--ink); padding-top: 22px; display: grid; gap: 12px; align-content: start; min-width: 0; }
 .way h3 { font-size: 1.9rem; }
 .way .detail { font-family: var(--display); font-size: 1.35rem; overflow-wrap: anywhere; user-select: all; }
@@ -255,7 +255,6 @@ footer .care { max-width: 46rem; line-height: 1.6; }
   .side-koan:hover { padding-right: 18px; }
 }
 
-.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--linen); padding: 10px 18px; border-radius: 999px; font-size: .85rem; z-index: 7; }
 
 @media (prefers-reduced-motion: reduce) { .sun, .sun::before, .sun::after { animation: none; } html { scroll-behavior: auto; } }
 </style>
@@ -418,12 +417,6 @@ footer .care { max-width: 46rem; line-height: 1.6; }
           <a class="more" data-link="booking" href="#connect">Book a time</a>
         </div>
         <div class="way">
-          <h3>Write</h3>
-          <p>Send me what's on your mind. I read everything and reply when I can.</p>
-          <p class="detail" data-text="email">hello@watchful.example</p>
-          <button class="more" type="button" id="copy-email">Copy address</button>
-        </div>
-        <div class="way">
           <h3>Follow</h3>
           <p>Small thoughts and questions between conversations.</p>
           <p class="detail" data-text="social">@watchful</p>
@@ -458,6 +451,7 @@ footer .care { max-width: 46rem; line-height: 1.6; }
   <div class="wrap">
     <div class="row">
       <span>Watchful · A Human Connection</span>
+      <span>For practical questions: <a data-text="email" href="#connect">hello@watchful.example</a></span>
       <span>© 2026 Jesse O'Meara</span>
     </div>
     <p class="care">Watchful is a conversation between people. It isn't therapy or medical care. If you're in crisis or thinking about harming yourself, please contact your local emergency number or a crisis line now (in the US, call or text 988).</p>
@@ -466,7 +460,6 @@ footer .care { max-width: 46rem; line-height: 1.6; }
 
 <a class="side-koan" href="https://koan-beta.vercel.app" target="_blank" rel="noopener" aria-label="Open Koan in a new tab"><i>◯</i> Play with Koan</a>
 
-<div class="toast" id="toast" role="status" hidden></div>
 
 <script>
 // Fill these in: they drive the contact section.
@@ -634,26 +627,15 @@ for (const [k, v] of Object.entries(PRICES)) {
   if (el) el.textContent = v;
 }
 
-document.querySelector('[data-text="email"]').textContent = CONTACT.email;
+const mail = document.querySelector('[data-text="email"]');
+mail.textContent = CONTACT.email;
+mail.href = `mailto:${CONTACT.email}`;
 document.querySelector('[data-text="social"]').textContent = CONTACT.socialHandle;
 for (const a of document.querySelectorAll("[data-link]")) {
   const url = CONTACT[a.dataset.link];
   if (url) { a.href = url; a.target = "_blank"; a.rel = "noopener"; }
 }
 
-const toast = document.getElementById("toast");
-let toastTimer;
-function say(msg) {
-  toast.textContent = msg; toast.hidden = false;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.hidden = true; }, 2200);
-}
-document.getElementById("copy-email").addEventListener("click", () => {
-  const el = document.querySelector('[data-text="email"]');
-  const select = () => { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(CONTACT.email).then(() => say("Address copied"), () => { select(); say("Address selected. Copy it to write."); });
-  } else { select(); say("Address selected. Copy it to write."); }
-});
 </script>
 </body>
 </html>
