@@ -91,9 +91,13 @@ nav.links a:hover { color: var(--ink); }
 .btn:hover { background: transparent; color: var(--ink); }
 .btn.ghost { background: transparent; color: var(--ink); }
 .btn.ghost:hover { background: var(--ink); color: var(--linen); }
-nav.links .btn { color: var(--linen); }
-nav.links .btn:hover { color: var(--ink); }
-@media (max-width: 760px) { nav.links a:not(.btn) { display: none; } }
+header.top .btn { color: var(--linen); flex: none; }
+header.top .btn:hover { color: var(--ink); }
+@media (max-width: 760px) {
+  nav.links { gap: 18px; overflow-x: auto; scrollbar-width: none; white-space: nowrap; min-width: 0; padding-right: 24px; -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
+  nav.links::-webkit-scrollbar { display: none; }
+  header.top .btn { padding: 9px 16px; font-size: .75rem; }
+}
 
 /* Hero: dusk horizon */
 .hero { position: relative; overflow: hidden; background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 55%, var(--sky-low) 100%); }
@@ -270,17 +274,16 @@ footer .care { max-width: 46rem; line-height: 1.6; }
 
 <header class="top">
   <div class="wrap">
-    <a class="mark" href="#top" aria-label="Watchful, home">
-      <svg class="glyph" viewBox="0 0 110 138" aria-hidden="true"><use href="#watchful-mark"/></svg>
-      Watchful
-    </a>
     <nav class="links" aria-label="Main">
+      <a href="#top">Home</a>
       <a href="#about">About</a>
-      <a href="#creations">Writing &amp; film</a>
+      <a href="#creations">Writing</a>
+      <a href="#creations">Talks</a>
+      <a href="#creations">Experiments</a>
       <a href="#sessions">Sessions</a>
       <a href="#koan">Koan</a>
-      <a class="btn" href="#connect">Reach out</a>
     </nav>
+    <a class="btn" href="#connect">Reach out</a>
   </div>
 </header>
 
