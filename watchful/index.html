@@ -75,7 +75,8 @@ header.top {
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
 }
-header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 14px; }
+header.top .wrap { display: flex; align-items: center; gap: 24px; padding-block: 14px; }
+header.top .btn { margin-left: auto; }
 .mark { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--display); font-size: 1.6rem; letter-spacing: .01em; }
 .mark .glyph { width: 27px; height: 34px; --mark-stroke: 5; }
 .glyph { fill: none; stroke: currentColor; stroke-width: var(--mark-stroke, 2.6); stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
@@ -273,6 +274,9 @@ footer .care { max-width: 46rem; line-height: 1.6; }
 
 <header class="top">
   <div class="wrap">
+    <a class="mark" href="#top" aria-label="Watchful, home">
+      <svg class="glyph" viewBox="0 0 110 138" aria-hidden="true"><use href="#watchful-mark"/></svg>
+    </a>
     <nav class="links" aria-label="Main">
       <a href="#top">Home</a>
       <a href="#about">About</a>
