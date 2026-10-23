@@ -493,7 +493,8 @@ worksEl.innerHTML = (WORKS.length ? WORKS : SOON).map((w) => {
     : `<div class="work soon">${inner}</div>`;
 }).join("");
 
-// Tap the sun: one curious question at a time.
+// Tap the sun: one curious question at a time. 100 in the pool;
+// each day a different 12 come up, the same for everyone that day.
 const QUESTIONS = [
   "What would you do today if nobody was keeping score?",
   "Who would you be without your story about yourself?",
@@ -507,14 +508,118 @@ const QUESTIONS = [
   "What's one belief you'd happily trade in?",
   "Where in your body does excitement live?",
   "What if this moment is exactly on time?",
+  "What are you waiting for permission to do?",
+  "What do you already know that you keep asking about?",
+  "What would you stop doing if you trusted yourself?",
+  "What's the kindest thing you could say to yourself right now?",
+  "Which of your rules did you never actually agree to?",
+  "What does your curiosity keep pointing at?",
+  "What feels true before you think about it?",
+  "What are you holding that isn't yours to carry?",
+  "If fear were just excitement without breath, what would you do?",
+  "What would you say if you knew no one would mind?",
+  "Who is the one noticing your thoughts?",
+  "What part of you hasn't been invited to the conversation yet?",
+  "What are you making harder than it needs to be?",
+  "What would a child notice in this room that you don't?",
+  "What's one thing you'd do differently if you weren't in a hurry?",
+  "When do you feel most like yourself?",
+  "What do you keep calling \"someday\"?",
+  "What would you love to be wrong about?",
+  "Which feeling do you avoid the most, and what might it be telling you?",
+  "What's something you used to love and quietly put down?",
+  "If you could ask your future self one question, what would it be?",
+  "What story did you tell yourself this morning?",
+  "What's the smallest step you could take toward what you want?",
+  "What would change if you stopped trying to be good and just tried to be real?",
+  "Where are you saying yes when you mean no?",
+  "What does \"enough\" look like for you?",
+  "What are you curious about that you've never said out loud?",
+  "What do you admire in others that you also have?",
+  "If today were a sentence, what's the next word?",
+  "What would play look like in the thing you take most seriously?",
+  "What are you protecting by staying busy?",
+  "What do you know about yourself that would surprise your friends?",
+  "Where does your attention go when you let it wander?",
+  "What would you do with an unscheduled afternoon?",
+  "What do you want more of that costs nothing?",
+  "What's something you've outgrown but keep wearing?",
+  "If your heart had a vote, how would it vote today?",
+  "What question are you afraid someone will ask you?",
+  "What's beautiful about the place you're in right now?",
+  "Who taught you what you believe about yourself?",
+  "What's the gift hidden in your current problem?",
+  "What would you create if no one ever saw it?",
+  "What do you need to forgive so you can move on?",
+  "What makes time disappear for you?",
+  "What would a wiser version of you find funny about today?",
+  "What's the difference between what you want and what you think you should want?",
+  "What do you notice when you stop trying to fix anything?",
+  "What's one thing you'd like to understand before you die?",
+  "What does silence sound like to you?",
+  "Where do you feel most at home in yourself?",
+  "What are you ready to let be easy?",
+  "What would you explore if you had nothing to prove?",
+  "What did you know as a kid that you've since forgotten?",
+  "What are you grateful for that you've never mentioned?",
+  "What would happen if you were completely honest for one day?",
+  "What's asking for your attention right now?",
+  "What does the quiet part of you want?",
+  "What's a small miracle you've walked past this week?",
+  "Which of your worries is actually a wish?",
+  "What would you choose if every option were safe?",
+  "What are you learning that you didn't sign up for?",
+  "How would you spend today if it were your favourite day?",
+  "What are you still trying to earn that might already be yours?",
+  "What would it feel like to be fully here for the next minute?",
+  "What's one assumption you could test this week?",
+  "What do you know for certain?",
+  "What would you do if you weren't waiting to feel ready?",
+  "What gives you that quiet sense of yes?",
+  "Where are you being too serious?",
+  "What does your restlessness want you to know?",
+  "What would the bravest, kindest version of you do next?",
+  "What's one thing you'd like to be remembered for?",
+  "What do you secretly hope someone will notice about you?",
+  "What if nothing is wrong right now?",
+  "Where in your life are you just going through the motions?",
+  "What do you say to yourself when you make a mistake?",
+  "What part of your life feels most alive?",
+  "What would you do with your hands if you followed joy?",
+  "What did today try to teach you?",
+  "What would you ask the universe if you knew it would answer?",
+  "What are you resisting that might be helping you?",
+  "Who would you be if you stopped comparing?",
+  "What wants to be made through you?",
+  "What do you keep circling back to?",
+  "What are you already doing that you could do with more love?",
+  "What's here when you stop looking for something?",
+  "What feels like home?",
+  "What happens if you just watch, for one breath?",
 ];
 const ask = document.getElementById("ask");
-let qi = Math.floor(Math.random() * QUESTIONS.length);
+const today = (() => {
+  const d = new Date();
+  let seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  const rand = () => {
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const pool = QUESTIONS.slice();
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, 12);
+})();
+let qi = -1;
 document.getElementById("sun").addEventListener("click", () => {
   ask.classList.add("fade");
   setTimeout(() => {
-    qi = (qi + 1) % QUESTIONS.length;
-    ask.textContent = QUESTIONS[qi];
+    qi = (qi + 1) % today.length;
+    ask.textContent = today[qi];
     ask.classList.remove("hint", "fade");
   }, 300);
 });
