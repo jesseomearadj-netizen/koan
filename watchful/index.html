@@ -156,6 +156,19 @@ nav.links .btn:hover { color: var(--ink); }
 .sign { font-family: var(--display); font-style: italic; font-size: 1.6rem; color: var(--moss); }
 @media (max-width: 760px) { .about .wrap { grid-template-columns: 1fr; } .portrait { max-width: 340px; } }
 
+/* Sessions */
+.offer { border-top: 1px solid var(--line); }
+.offer .wrap { padding-block: clamp(72px, 9vw, 120px); display: grid; gap: 44px; }
+.offer h2 { font-size: clamp(2.2rem, 4.5vw, 3.4rem); }
+.plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.plan { border-top: 1px solid var(--ink); padding-top: 22px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.plan .len { font-size: .75rem; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: var(--taupe); }
+.plan h3 { font-size: 1.9rem; }
+.plan .price { font-family: var(--display); font-size: 2.6rem; line-height: 1; color: var(--moss); font-variant-numeric: lining-nums tabular-nums; }
+.plan .price small { font-family: var(--body); font-size: .85rem; color: var(--taupe); margin-left: .35em; }
+.offer .notes { display: grid; gap: 6px; max-width: 46rem; font-size: .95rem; color: var(--taupe); }
+@media (max-width: 760px) { .plans { grid-template-columns: 1fr; gap: 36px; } }
+
 /* Connect */
 .connect { background: var(--linen-2); }
 .connect .wrap { padding-block: clamp(72px, 9vw, 120px); display: grid; gap: 44px; }
@@ -227,6 +240,7 @@ footer .care { max-width: 46rem; line-height: 1.6; }
     <nav class="links" aria-label="Main">
       <a href="#about">About</a>
       <a href="#conversations">Conversations</a>
+      <a href="#sessions">Sessions</a>
       <a href="#koan">Koan</a>
       <a class="btn" href="#connect">Reach out</a>
     </nav>
@@ -303,6 +317,40 @@ footer .care { max-width: 46rem; line-height: 1.6; }
     </div>
   </section>
 
+  <section class="offer" id="sessions" aria-labelledby="offer-title">
+    <div class="wrap">
+      <div class="flow-head">
+        <span class="eyebrow">Ways to work together</span>
+        <h2 id="offer-title">Start small. <em>See if it fits.</em></h2>
+      </div>
+      <div class="plans">
+        <div class="plan">
+          <span class="len">20 minutes</span>
+          <h3>Intro call</h3>
+          <p class="price" data-price="intro">Free</p>
+          <p>Say hello, tell me what's on your mind, and we'll both get a feel for whether talking more would help.</p>
+        </div>
+        <div class="plan">
+          <span class="len">50 minutes</span>
+          <h3>Conversation</h3>
+          <p class="price"><span data-price="session">$75</span></p>
+          <p>One unhurried conversation. We follow whatever comes up and gently question what's in the way.</p>
+        </div>
+        <div class="plan">
+          <span class="len">4 × 50 minutes</span>
+          <h3>Four conversations</h3>
+          <p class="price"><span data-price="four">$255</span><small>save 15%</small></p>
+          <p>Meet weekly or at your own pace. Most of the deeper shifts happen when we keep coming back.</p>
+        </div>
+      </div>
+      <div class="notes">
+        <p>Money tight? Pay what feels right. Just ask, no explanation needed.</p>
+        <p>Need to move a session? Reschedule up to 24 hours before.</p>
+      </div>
+      <div class="cta-row"><a class="btn" data-link="booking" href="#connect">Book a free intro</a></div>
+    </div>
+  </section>
+
   <section class="connect" id="connect" aria-labelledby="connect-title">
     <div class="wrap">
       <div class="flow-head">
@@ -312,7 +360,7 @@ footer .care { max-width: 46rem; line-height: 1.6; }
       <div class="ways">
         <div class="way">
           <h3>Talk</h3>
-          <p>A relaxed one-on-one call. Bring a question, an idea, or a knot you want to look at together.</p>
+          <p>Start with a free 20-minute intro call. Bring a question, an idea, or a knot you want to look at together.</p>
           <a class="more" data-link="booking" href="#connect">Book a time</a>
         </div>
         <div class="way">
@@ -373,6 +421,12 @@ const CONTACT = {
   social: "",    // e.g. https://instagram.com/yourname
   socialHandle: "@watchful",
 };
+// Prices shown in "Ways to work together".
+const PRICES = { session: "$75", four: "$255" };
+for (const [k, v] of Object.entries(PRICES)) {
+  const el = document.querySelector(`[data-price="${k}"]`);
+  if (el) el.textContent = v;
+}
 
 document.querySelector('[data-text="email"]').textContent = CONTACT.email;
 document.querySelector('[data-text="social"]').textContent = CONTACT.socialHandle;

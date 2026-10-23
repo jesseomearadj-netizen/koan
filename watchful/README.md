@@ -11,6 +11,7 @@ At the bottom of `index.html`, in the `CONTACT` block:
 - `email`: the address people should write to (shown on the page with a copy button)
 - `booking`: a scheduling link (Calendly, cal.com, etc.) for "Book a time"
 - `social` and `socialHandle`: the profile link and handle for "Follow"
+- `PRICES` (just below): the session and four-session prices in "Ways to work together"
 
 Also worth personalising: the "Meet Jesse" bio and the "Photo coming" portrait placeholder.
 
