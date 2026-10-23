@@ -13,19 +13,21 @@
 <style>
 /* Layout: a dusk horizon opens the page, then long quiet linen sections with one dark band, a door left open on the right edge to Koan. */
 :root {
-  --linen: #EEE8DF;
-  --linen-2: #E5DDD1;
-  --ink: #2B2723;
-  --taupe: #7D6F62;
-  --moss: #4D5A46;
-  --line: #CFC4B5;
-  --band: #2A2E27;
-  --band-ink: #E9E2D5;
-  --sky-top: #D9D3CB;
-  --sky-mid: #E8D9C8;
-  --sky-low: #EEE3D4;
-  --sun: #F4E6CF;
-  --sun-glow: rgba(234, 205, 168, .55);
+  --linen: #F2E8DA;
+  --linen-2: #EADCC8;
+  --ink: #2E241C;
+  --taupe: #8A6E55;
+  --moss: #5F5B37;
+  --line: #DBC9B1;
+  --band: #2E2219;
+  --band-ink: #F1E4D0;
+  --sky-top: #E8D6C1;
+  --sky-mid: #EFD2B0;
+  --sky-low: #F2E1CA;
+  --gong-hi: #E9C08A;
+  --gong: #B88446;
+  --gong-edge: #7E5328;
+  --gong-glow: rgba(214, 150, 80, .38);
   --display: "Cormorant Garamond", "Cormorant", Garamond, "Times New Roman", serif;
   --body: "Jost", "Futura", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --gutter-l: max(16px, env(safe-area-inset-left, 0px));
@@ -33,16 +35,18 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --linen: #181715; --linen-2: #201E1B; --ink: #E8E1D6; --taupe: #A89A8B; --moss: #A7B79C;
-    --line: #3A3631; --band: #0F110E; --band-ink: #E3DCCF;
-    --sky-top: #14161A; --sky-mid: #262229; --sky-low: #3A2F2C; --sun: #E9D6B8; --sun-glow: rgba(214, 170, 120, .28);
+    --linen: #1C1611; --linen-2: #251C15; --ink: #EFE3D1; --taupe: #BC9F82; --moss: #C2BC8C;
+    --line: #3F3127; --band: #120D09; --band-ink: #EADCC6;
+    --sky-top: #17110D; --sky-mid: #2D1F16; --sky-low: #3D291C;
+    --gong-hi: #E2B57A; --gong: #A8743A; --gong-edge: #5E3C1C; --gong-glow: rgba(214, 140, 60, .26);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --linen: #181715; --linen-2: #201E1B; --ink: #E8E1D6; --taupe: #A89A8B; --moss: #A7B79C;
-  --line: #3A3631; --band: #0F110E; --band-ink: #E3DCCF;
-  --sky-top: #14161A; --sky-mid: #262229; --sky-low: #3A2F2C; --sun: #E9D6B8; --sun-glow: rgba(214, 170, 120, .28);
+  --linen: #1C1611; --linen-2: #251C15; --ink: #EFE3D1; --taupe: #BC9F82; --moss: #C2BC8C;
+    --line: #3F3127; --band: #120D09; --band-ink: #EADCC6;
+    --sky-top: #17110D; --sky-mid: #2D1F16; --sky-low: #3D291C;
+    --gong-hi: #E2B57A; --gong: #A8743A; --gong-edge: #5E3C1C; --gong-glow: rgba(214, 140, 60, .26);
   color-scheme: dark;
 }
 
@@ -99,17 +103,18 @@ nav.links .btn:hover { color: var(--ink); }
 .hero { position: relative; overflow: hidden; background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 55%, var(--sky-low) 100%); }
 .hero .wrap { position: relative; z-index: 1; padding-block: clamp(72px, 12vw, 140px) clamp(96px, 14vw, 170px); display: grid; gap: 28px; justify-items: start; }
 .sun {
-  position: absolute; z-index: 0; right: 8%; bottom: 18%;
-  width: clamp(180px, 30vw, 380px); aspect-ratio: 1; max-width: 100%; border-radius: 50%;
-  background: radial-gradient(circle, var(--sun) 0 54%, transparent 55%);
-  box-shadow: 0 0 120px 40px var(--sun-glow);
+  position: absolute; z-index: 0; right: 10%; bottom: calc(18% + 24px);
+  width: clamp(170px, 24vw, 310px); aspect-ratio: 1; max-width: 100%; border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 0 17%, rgba(60, 30, 5, .22) 17.6% 18.6%, transparent 19.4%),
+    repeating-radial-gradient(circle, rgba(255, 230, 190, 0) 0 5px, rgba(255, 230, 190, .07) 6px, rgba(255, 230, 190, 0) 7px),
+    radial-gradient(circle at 36% 32%, var(--gong-hi) 0%, var(--gong) 48%, var(--gong-edge) 100%);
+  box-shadow: 0 0 90px 24px var(--gong-glow), inset 0 0 0 3px rgba(60, 30, 5, .25), inset 0 -10px 28px rgba(60, 30, 5, .28);
   animation: breathe 9s ease-in-out infinite;
-  display: grid; place-items: center;
 }
-.sun .glyph { width: 42%; height: auto; color: var(--taupe); --mark-stroke: 2.2; }
 .horizon { position: absolute; left: 0; right: 0; bottom: 18%; height: 1px; background: var(--taupe); opacity: .45; z-index: 0; }
 .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 18%; background: var(--sky-low); z-index: 0; }
-@media (max-width: 760px) { .sun { width: 130px; right: -20px; top: 28px; bottom: auto; opacity: .7; } .hero .wrap { padding-bottom: 120px; } }
+@media (max-width: 760px) { .sun { width: 120px; right: -24px; top: 32px; bottom: auto; opacity: .9; } .hero .wrap { padding-bottom: 120px; } }
 @keyframes breathe { 0%, 100% { transform: scale(1); opacity: .92; } 50% { transform: scale(1.045); opacity: 1; } }
 .hero h1 { font-size: clamp(4rem, 13vw, 9.5rem); letter-spacing: -.01em; line-height: .9; }
 .hero .sub { font-family: var(--display); font-style: italic; font-size: clamp(1.6rem, 3.6vw, 2.5rem); color: var(--taupe); margin-top: -8px; }
@@ -237,7 +242,7 @@ footer .care { max-width: 46rem; line-height: 1.6; }
 
 <main id="top">
   <section class="hero" aria-labelledby="hero-title">
-    <div class="sun" aria-hidden="true"><svg class="glyph" viewBox="0 0 110 138"><use href="#watchful-mark"/></svg></div>
+    <div class="sun" aria-hidden="true"></div>
     <div class="ground" aria-hidden="true"></div>
     <div class="horizon" aria-hidden="true"></div>
     <div class="wrap">
