@@ -9,7 +9,7 @@
 <link rel="icon" href="mark.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@300;400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@300;400;500&family=Marcellus&display=swap">
 <style>
 /* Layout: a dusk horizon opens the page, then long quiet linen sections with one dark band, a door left open on the right edge to Koan. */
 :root {
@@ -28,6 +28,7 @@
   --gong: #B88446;
   --gong-edge: #7E5328;
   --gong-glow: rgba(214, 150, 80, .38);
+  --carved: "Marcellus", "Optima", "Candara", "Times New Roman", serif;
   --display: "Cormorant Garamond", "Cormorant", Garamond, "Times New Roman", serif;
   --body: "Jost", "Futura", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --gutter-l: max(16px, env(safe-area-inset-left, 0px));
@@ -80,7 +81,7 @@ header.top {
   border-bottom: 1px solid var(--line);
 }
 header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 14px; }
-.mark { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--display); font-size: 1.6rem; letter-spacing: .01em; }
+.mark { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--carved); font-size: 1.3rem; letter-spacing: .14em; text-transform: uppercase; }
 .mark .glyph { width: 27px; height: 34px; --mark-stroke: 4.6; }
 .glyph { fill: none; stroke: currentColor; stroke-width: var(--mark-stroke, 2.6); stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
 nav.links { display: flex; align-items: center; gap: 28px; font-size: .9rem; }
@@ -116,7 +117,7 @@ nav.links .btn:hover { color: var(--ink); }
 .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 18%; background: var(--sky-low); z-index: 0; }
 @media (max-width: 760px) { .sun { width: 120px; right: -24px; top: 32px; bottom: auto; opacity: .9; } .hero .wrap { padding-bottom: 120px; } }
 @keyframes breathe { 0%, 100% { transform: scale(1); opacity: .92; } 50% { transform: scale(1.045); opacity: 1; } }
-.hero h1 { font-size: clamp(4rem, 13vw, 9.5rem); letter-spacing: -.01em; line-height: .9; }
+.hero h1 { font-family: var(--carved); text-transform: uppercase; font-size: clamp(2.9rem, 11.5vw, 8.4rem); letter-spacing: .04em; line-height: .95; }
 .hero .sub { font-family: var(--display); font-style: italic; font-size: clamp(1.6rem, 3.6vw, 2.5rem); color: var(--taupe); margin-top: -8px; }
 .hero p.lede { max-width: 34rem; font-size: 1.15rem; }
 .cta-row { display: flex; flex-wrap: wrap; gap: 14px; }
