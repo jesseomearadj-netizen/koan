@@ -6,6 +6,7 @@ import { sitStreak } from "@/lib/journal";
 import type { Experiment, GuideTurn, Journal, Message, NarrativeStatus } from "@/lib/types";
 import { QUESTS, WISDOM, wisdomOfDay, type Quest } from "@/lib/wisdom";
 import { WisdomCard } from "./WisdomCard";
+import { CIRCLES, teacherInfo, type Circle } from "@/lib/teachers";
 import { Enso, Frog, Icon, type IconName } from "./Ink";
 import { BELLS, bellLength, newAudio, preview, saveBell, savedBell, strike, type BellId } from "@/lib/bells";
 
@@ -200,7 +201,17 @@ function Bubble({ m, onTry, reveal }: { m: Message; onTry: (x: Experiment) => vo
 function Path({ journal, act }: { journal: Journal; act: (b: unknown) => Promise<void> }) {
   const [open, setOpen] = useState<string | null>(null);
   const [note, setNote] = useState("");
-  const [deck, setDeck] = useState(() => Math.floor(Math.random() * WISDOM.length));
+  const [circle, setCircle] = useState<Circle | "All">("All");
+  const inCircle = (c: Circle | "All") => (c === "All" ? WISDOM : WISDOM.filter((w) => teacherInfo(w.teacher).circle === c));
+  const cards = inCircle(circle);
+  const [deck, setDeck] = useState(() => WISDOM[Math.floor(Math.random() * WISDOM.length)].id);
+  const at = Math.max(0, cards.findIndex((w) => w.id === deck));
+  const draw = () => setDeck(cards[(at + 1 + Math.floor(Math.random() * Math.max(1, cards.length - 1))) % cards.length].id);
+  const pickCircle = (c: Circle | "All") => {
+    setCircle(c);
+    const next = inCircle(c);
+    if (!next.some((w) => w.id === deck)) setDeck(next[Math.floor(Math.random() * next.length)].id);
+  };
   const found = (q: Quest) => journal.discoveries.filter((d) => d.quest === q.id);
   const done = QUESTS.filter((q) => found(q).length > 0).length;
   const next = QUESTS.find((q) => found(q).length === 0);
@@ -239,9 +250,16 @@ function Path({ journal, act }: { journal: Journal; act: (b: unknown) => Promise
         })}
       </ol>
       <div className="deck">
-        <p className="kicker">Wisdom deck · {deck + 1} of {WISDOM.length}</p>
-        <WisdomCard card={WISDOM[deck]} />
-        <button className="btn-ghost" onClick={() => setDeck((d) => (d + 1 + Math.floor(Math.random() * (WISDOM.length - 1))) % WISDOM.length)}>Draw another</button>
+        <h2>Wisdom deck</h2>
+        <p className="muted">Fingers pointing at the moon, from many teachers across many centuries. Draw one, then go and look for yourself.</p>
+        <div className="circles" role="radiogroup" aria-label="Circle of teachers">
+          {(["All", ...CIRCLES] as const).map((c) => (
+            <button key={c} type="button" role="radio" aria-checked={circle === c} className={circle === c ? "active" : ""} onClick={() => pickCircle(c)}>{c}</button>
+          ))}
+        </div>
+        <p className="kicker">{at + 1} of {cards.length}</p>
+        <WisdomCard card={cards[at]} />
+        <button className="btn-ghost" onClick={draw}>Draw another</button>
       </div>
     </section>
   );
