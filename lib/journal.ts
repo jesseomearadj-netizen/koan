@@ -1,12 +1,13 @@
 import type { Discovery, GuideTurn, Journal, Message, Narrative, NarrativeStatus, Sit } from "./types";
 import { questById } from "./wisdom";
+import { lensById, type LensId } from "./lenses";
 
 /** Pure journal logic, shared by server routes and tests. */
 
-export const LIMITS = { messages: 60, narratives: 80, sits: 365, notes: 6, story: 140, note: 200, text: 2000, discovery: 600, discoveries: 200 };
+export const LIMITS = { messages: 60, narratives: 80, sits: 365, notes: 6, story: 140, note: 200, text: 2000, discovery: 600, discoveries: 200, looks: 40 };
 const STATUSES: NarrativeStatus[] = ["noticed", "questioned", "seen-through"];
 
-export const emptyJournal = (): Journal => ({ v: 1, messages: [], narratives: [], sits: [], discoveries: [] });
+export const emptyJournal = (): Journal => ({ v: 1, messages: [], narratives: [], sits: [], discoveries: [], looks: [] });
 
 const clip = (s: unknown, n: number) => (typeof s === "string" ? s.replace(/\s+/g, " ").trim().slice(0, n) : "");
 
@@ -68,6 +69,15 @@ export function applyTurn(j: Journal, text: string, turn: GuideTurn, now = Date.
   return next;
 }
 
+/** Appends one exchange on the Look page. Beliefs it spots go to the same Stories tracker as Talk's. */
+export function applyLook(j: Journal, text: string, lens: LensId, turn: GuideTurn, now = Date.now()): Journal {
+  const user: Message = { role: "user", text: clip(text, LIMITS.text), at: now, lens };
+  const guide: Message = { role: "guide", text: turn.reply, at: now + 1, lens, question: turn.question, experiment: turn.experiment, wisdom: turn.wisdom, ...(turn.care ? { care: true } : {}) };
+  let next: Journal = { ...j, looks: [...j.looks, user, guide].slice(-LIMITS.looks) };
+  if (turn.narrative) next = noticeNarrative(next, turn.narrative.story, `Look: ${turn.narrative.where}`.slice(0, LIMITS.note), now);
+  return next;
+}
+
 /** Consecutive days (ending today or yesterday) with at least one sit. */
 export function sitStreak(sits: Sit[], now = Date.now()) {
   const day = (t: number) => Math.floor((t - new Date(t).getTimezoneOffset() * 60_000) / 86_400_000);
@@ -83,12 +93,14 @@ export function sitStreak(sits: Sit[], now = Date.now()) {
 export function sanitizeJournal(raw: unknown): Journal {
   const r = (raw && typeof raw === "object" ? raw : {}) as Partial<Journal>;
   const num = (x: unknown) => (typeof x === "number" && Number.isFinite(x) ? x : 0);
-  const messages = (Array.isArray(r.messages) ? r.messages : []).filter((m) => m && (m.role === "user" || m.role === "guide") && typeof m.text === "string").slice(-LIMITS.messages);
+  const isMessage = (m: Message) => m && (m.role === "user" || m.role === "guide") && typeof m.text === "string";
+  const messages = (Array.isArray(r.messages) ? r.messages : []).filter(isMessage).slice(-LIMITS.messages);
+  const looks = (Array.isArray(r.looks) ? r.looks : []).filter((m) => isMessage(m) && lensById(m.lens)).slice(-LIMITS.looks);
   const narratives = (Array.isArray(r.narratives) ? r.narratives : [])
     .filter((n) => n && typeof n.id === "string" && typeof n.story === "string")
     .map((n) => ({ id: n.id, story: clip(n.story, LIMITS.story), status: STATUSES.includes(n.status) ? n.status : "noticed", count: Math.max(1, num(n.count)), firstSeen: num(n.firstSeen), lastSeen: num(n.lastSeen), notes: (Array.isArray(n.notes) ? n.notes : []).map((x) => clip(x, LIMITS.note)).filter(Boolean).slice(-LIMITS.notes) }) as Narrative)
     .slice(-LIMITS.narratives);
   const sits = (Array.isArray(r.sits) ? r.sits : []).filter((s) => s && num(s.minutes) > 0).map((s) => ({ at: num(s.at), minutes: num(s.minutes), note: clip(s.note, LIMITS.note) })).slice(-LIMITS.sits);
   const discoveries = (Array.isArray(r.discoveries) ? r.discoveries : []).filter((d) => d && questById(d.quest) && typeof d.note === "string").map((d) => ({ quest: d.quest, note: clip(d.note, LIMITS.discovery), at: num(d.at) })).slice(-LIMITS.discoveries);
-  return { v: 1, messages, narratives, sits, discoveries };
+  return { v: 1, messages, narratives, sits, discoveries, looks };
 }

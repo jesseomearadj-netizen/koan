@@ -9,9 +9,10 @@ import { WisdomCard } from "./WisdomCard";
 import { CIRCLES, teacherInfo, type Circle } from "@/lib/teachers";
 import { Enso, Frog, Icon, type IconName } from "./Ink";
 import { pickStarters } from "@/lib/starters";
+import { LENSES, lensById, splitCharged, type LensId } from "@/lib/lenses";
 import { BELLS, bellLength, newAudio, preview, saveBell, savedBell, saveShowClock, savedShowClock, strike, type BellId } from "@/lib/bells";
 
-type Tab = "talk" | "path" | "stories" | "stillness";
+type Tab = "talk" | "look" | "path" | "stories" | "stillness";
 
 async function api<T>(path: string, body?: unknown): Promise<T> {
   if (typeof navigator !== "undefined" && !navigator.onLine) throw new Error("You're offline. Reconnect to talk with Koan.");
@@ -59,7 +60,7 @@ export default function KoanApp({ user }: { user: string }) {
       </header>
 
       <nav className="dock" aria-label="Sections">
-        {([["talk", "Talk", "talk"], ["path", "Path", "path"], ["stories", "Stories", "stories"], ["stillness", "Sit", "sit"]] as [Tab, string, IconName][]).map(([t, label, icon]) => (
+        {([["talk", "Talk", "talk"], ["look", "Look", "look"], ["path", "Path", "path"], ["stories", "Stories", "stories"], ["stillness", "Sit", "sit"]] as [Tab, string, IconName][]).map(([t, label, icon]) => (
           <button key={t} className={tab === t ? "active" : ""} aria-current={tab === t ? "page" : undefined} onClick={() => { setTab(t); window.scrollTo({ top: 0 }); }}>
             <Icon name={icon} />
             <span>{label}</span>
@@ -73,6 +74,7 @@ export default function KoanApp({ user }: { user: string }) {
       <main className="app-main">
         {!journal ? <div className="settling"><Frog size={96} /><p className="muted">Settling in… no rush.</p></div>
           : tab === "talk" ? <Talk journal={journal} setJournal={setJournal} onError={setError} onTry={(x) => { setPractice(x); setTab("stillness"); }} act={act} />
+          : tab === "look" ? <Look journal={journal} setJournal={setJournal} onError={setError} onTry={(x) => { setPractice(x); setTab("stillness"); }} act={act} />
           : tab === "path" ? <Path journal={journal} act={act} />
           : tab === "stories" ? <Stories journal={journal} act={act} />
           : <Stillness journal={journal} act={act} chosen={practice} choose={setPractice} />}
@@ -174,8 +176,8 @@ function Talk({ journal, setJournal, onError, onTry, act }: { journal: Journal; 
 }
 
 // A new reply is inked in word by word, top to bottom; replies already on the page just sit there.
-function Bubble({ m, onTry, reveal }: { m: Message; onTry: (x: Experiment) => void; reveal?: boolean }) {
-  if (m.role === "user") return <li className="me-line">{m.text}</li>;
+function Bubble({ m, onTry, reveal, charged }: { m: Message; onTry: (x: Experiment) => void; reveal?: boolean; charged?: boolean }) {
+  if (m.role === "user") return <li className="me-line">{charged ? <Charged text={m.text} /> : m.text}</li>;
   const words = m.text.split(/(\s+)/);
   const step = Math.min(45, 2200 / Math.max(1, words.length / 2));
   let t = 0;
@@ -200,6 +202,86 @@ function Bubble({ m, onTry, reveal }: { m: Message; onTry: (x: Experiment) => vo
       )}
       </div>
     </li>
+  );
+}
+
+// Words that carry a belief or a lot of importance get a soft wavy underline, so you can catch them too.
+function Charged({ text }: { text: string }) {
+  return <>{splitCharged(text).map((p, i) => (p.charged ? <mark key={i} className="charged" title="Hmm, who gave you that word?">{p.text}</mark> : p.text))}</>;
+}
+
+function Look({ journal, setJournal, onError, onTry, act }: { journal: Journal; setJournal: (j: Journal) => void; onError: (s: string) => void; onTry: (x: Experiment) => void; act: (b: unknown) => Promise<void> }) {
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<string | null>(null);
+  const [demo, setDemo] = useState(false);
+  const [fresh, setFresh] = useState<number | null>(null);
+  const [lensId, setLensId] = useState<LensId | null>(() => journal.looks.at(-1)?.lens ?? null);
+  const lens = lensById(lensId);
+  const end = useRef<HTMLDivElement>(null);
+  const input = useRef<HTMLTextAreaElement>(null);
+  const started = journal.looks.length > 0;
+
+  useEffect(() => { if (started || pending) end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [journal.looks.length, pending, started]);
+
+  async function send(e?: React.FormEvent) {
+    e?.preventDefault();
+    const t = text.trim();
+    if (!t || busy || !lens) return;
+    setBusy(true); setPending(t); setText("");
+    try {
+      const d = await api<{ turn: GuideTurn; live: boolean; journal: Journal }>("/api/guide", { text: t, lens: lens.id });
+      setJournal(d.journal);
+      setFresh(d.journal.looks.at(-1)?.at ?? null);
+      setDemo(!d.live && !d.turn.care);
+    } catch (err) {
+      setText(t);
+      onError((err as Error).message);
+    } finally { setBusy(false); setPending(null); }
+  }
+  const starters = useRef<HTMLDivElement>(null);
+  // Bring the door's starters into view, since on a phone they sit below all the doors.
+  const pick = (id: LensId) => { setLensId(id); setTimeout(() => starters.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50); };
+  const newLook = () => { if (confirm("Start a new look? Beliefs you spotted stay in your Stories.")) { void act({ action: "clear-looks" }); setLensId(null); } };
+
+  return (
+    <section className="talk look">
+      {!started && !pending ? (
+        <div className="welcome">
+          <h1>Have a look</h1>
+          <p className="muted">Bring a belief, something that feels like a very big deal, or a part of you that&apos;s loud today. Koan will poke at it gently, with a grin. Nobody&apos;s judging and there&apos;s no answer to get right. Just looking is enough.</p>
+          <div className="doors" role="radiogroup" aria-label="Pick a door">
+            {LENSES.map((l, i) => (
+              <button key={l.id} type="button" role="radio" aria-checked={lensId === l.id} className={`door rise${lensId === l.id ? " active" : ""}`} style={{ animationDelay: `${i * 120}ms` }} onClick={() => pick(l.id)}>
+                <strong>{l.title}</strong>
+                <span className="muted small">{l.tagline}</span>
+                <span className="kicker">{l.spirit}</span>
+              </button>
+            ))}
+          </div>
+          {lens && (
+            <div className="starters" key={lens.id} ref={starters}>
+              {lens.starters.map((s, i) => <button key={s} className="chip-btn rise" style={{ animationDelay: `${i * 90}ms` }} onClick={() => { setText(s); input.current?.focus(); }}>{s}</button>)}
+            </div>
+          )}
+        </div>
+      ) : lens && <p className="kicker look-door">{lens.title} · {lens.spirit}</p>}
+      <ol className="thread">
+        {journal.looks.map((m, i) => <Bubble key={`${m.at}-${i}`} m={m} onTry={onTry} charged reveal={m.role === "guide" && m.at === fresh} />)}
+        {pending && <li className="me-line"><Charged text={pending} /></li>}
+        {pending && <li className="guide-line typing" aria-label="Koan is looking"><Enso size={22} stroke={12} className="pondering" /><span className="muted">looking…</span></li>}
+      </ol>
+      <div ref={end} />
+      {demo && <p className="fine center">Demo mode: Koan is using scripted questions until the AI key is set.</p>}
+      {lens && (
+        <form className="composer" onSubmit={send}>
+          <textarea ref={input} value={text} onChange={(e) => setText(e.target.value)} placeholder={started ? "What do you notice?" : lens.placeholder} rows={2} maxLength={2000}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }} aria-label="Your message" />
+          <button className="btn-ink" disabled={busy || !text.trim()}>Send</button>
+        </form>
+      )}
+      {started && <button className="btn-ghost small center-block" onClick={newLook}>New look</button>}
+    </section>
   );
 }
 

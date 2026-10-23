@@ -40,12 +40,13 @@ export function Seal({ text }: { text: string }) {
   return <span className="seal" aria-hidden="true">{text.replace(/^(Sri |Zen story|Daikaku \(Zen\))/, (m) => (m.startsWith("Sri") ? "" : m.startsWith("Daikaku") ? "D" : "禅")).trim().charAt(0)}</span>;
 }
 
-export type IconName = "talk" | "path" | "stories" | "sit";
+export type IconName = "talk" | "look" | "path" | "stories" | "sit";
 
 export function Icon({ name }: { name: IconName }) {
   const common = { viewBox: "0 0 24 24", width: 24, height: 24, fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
   switch (name) {
     case "talk": return <svg {...common}><path d="M4 12c0-4 3.6-7 8-7s8 3 8 7-3.6 7-8 7c-1.2 0-2.3-.2-3.3-.6L4.5 20l1.1-3.6C4.6 15.2 4 13.7 4 12Z" /></svg>;
+    case "look": return <svg {...common}><path d="M2.8 12.4C5 8.3 8.3 6.2 12 6.2s7 2.1 9.2 6.2c-2.2 3.6-5.5 5.4-9.2 5.4s-7-1.8-9.2-5.4Z" /><circle cx="12" cy="12" r="2.6" /></svg>;
     case "path": return <svg {...common}><ellipse cx="7" cy="18" rx="3" ry="2" /><ellipse cx="15" cy="12.5" rx="3" ry="2" /><ellipse cx="9" cy="6.5" rx="2.6" ry="1.8" /></svg>;
     case "stories": return <svg {...common}><path d="M5 4h10l4 4v12H5z" /><path d="M9 11h6M9 15h4" /></svg>;
     case "sit": return <svg {...common}><path d="M19.5 9.5A8 8 0 1 1 13 4.1" /></svg>;
