@@ -479,7 +479,7 @@ const CONTACT = {
 const WORKS = [];
 
 const SOON = [
-  { kind: "Writing", title: "Things I'm thinking about", blurb: "Written down, when they're ready." },
+  { kind: "Writing", title: "Things I'm thinking about" },
   { kind: "Film", title: "Conversations and videos", blurb: "Talking with people, and whatever else I end up filming." },
   { kind: "Experiment", title: "Things I'm trying", blurb: "Some will work, some won't." },
 ];
@@ -488,7 +488,7 @@ const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 worksEl.innerHTML = (WORKS.length ? WORKS : SOON).map((w) => {
   const thumb = w.image ? `<img src="${esc(w.image)}" alt="">` : `<span>${esc(w.kind)}</span>`;
   const meta = w.url ? `${esc(w.kind)}${w.date ? " · " + esc(w.date) : ""}` : `${esc(w.kind)} · Coming soon`;
-  const inner = `<div class="thumb">${thumb}</div><span class="kind">${meta}</span><h3>${esc(w.title)}</h3><p>${esc(w.blurb)}</p>`;
+  const inner = `<div class="thumb">${thumb}</div><span class="kind">${meta}</span><h3>${esc(w.title)}</h3>${w.blurb ? `<p>${esc(w.blurb)}</p>` : ""}`;
   return w.url
     ? `<a class="work" href="${esc(w.url)}" target="_blank" rel="noopener">${inner}</a>`
     : `<div class="work soon">${inner}</div>`;
