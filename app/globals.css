@@ -324,3 +324,13 @@ textarea { resize: vertical }
 @keyframes ink-in { from { opacity: 0; filter: blur(3px) } to { opacity: 1; filter: none } }
 @keyframes rise { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
 @media (prefers-reduced-motion: reduce) { .ink-in, .rise, .quest-body, .quest-body > * { animation: none; opacity: 1 } }
+
+/* Look page */
+.doors { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; width: 100% }
+.door { display: grid; gap: 3px; text-align: left; padding: 14px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); transition: transform .2s, border-color .2s }
+.door:hover { transform: rotate(-.6deg); border-color: var(--ink) }
+.door.active { border-color: var(--seal); box-shadow: 0 0 0 1px var(--seal) }
+.door strong { font-weight: 500; font-size: 1.02rem }
+.door .kicker { margin-top: 4px }
+.look-door { margin-bottom: 4px }
+mark.charged { background: none; color: inherit; text-decoration: underline wavy var(--seal); text-decoration-thickness: 1px; text-underline-offset: 4px; cursor: help }

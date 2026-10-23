@@ -6,7 +6,7 @@ delete process.env.OPENROUTER_API_KEY;
 type Guide = typeof import("../lib/server/guide");
 const load = async (): Promise<Guide> => import("../lib/server/guide");
 const req = new Request("http://localhost/api/guide");
-const empty = { v: 1 as const, messages: [], narratives: [], sits: [], discoveries: [] };
+const empty = { v: 1 as const, messages: [], narratives: [], sits: [], discoveries: [], looks: [] };
 
 test("model output is validated and bounded", async () => {
   const { validateTurn } = await load();

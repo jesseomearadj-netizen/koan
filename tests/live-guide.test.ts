@@ -15,7 +15,7 @@ globalThis.fetch = (async (_url: unknown, init?: RequestInit) => {
 
 const req = new Request("http://localhost/api/guide");
 const journal = {
-  v: 1 as const, narratives: [], sits: [], discoveries: [],
+  v: 1 as const, narratives: [], sits: [], discoveries: [], looks: [],
   messages: [
     { role: "user" as const, text: "Something good happened and I don't trust it.", at: 1 },
     { role: "guide" as const, text: "Winning can feel jumpy too.", question: "What is your body bracing against?", wisdom: null, experiment: null, at: 2 },
@@ -45,4 +45,17 @@ test("an answer with a broken object is still an error", async () => {
   assert.equal(parseLooseJSON('{"reply": "cut off mid'), undefined);
   assert.equal(parseLooseJSON("   "), undefined);
   assert.deepEqual(parseLooseJSON('```json\n{"reply":"hi"}\n```'), { reply: "hi" });
+});
+
+test("the Look page sends its own thread and the door's guidance", async () => {
+  const { guideTurn } = await import("../lib/server/guide");
+  answer = JSON.stringify({ reply: "Ooh, 'have to'.", question: "Who gave you that?", narrative: null, experiment: null, wisdom: null, care: false });
+  const looks = [{ role: "user" as const, text: "I must be liked.", at: 5, lens: "belief" as const }, { role: "guide" as const, text: "Says who?", at: 6, lens: "belief" as const }];
+  await guideTurn("I have to win.", { ...journal, looks }, req, "importance");
+  const body = sent.at(-1)!;
+  assert.match(body.messages[0].content, /Look page/);
+  assert.match(body.messages[0].content, /Door: importance/);
+  const said = body.messages.slice(1).map((m) => m.content);
+  assert.ok(said.includes("I must be liked."));
+  assert.ok(!said.includes("Something good happened and I don't trust it."));
 });

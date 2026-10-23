@@ -21,7 +21,8 @@ type Action =
   | { action: "notice"; story: string; where?: string }
   | { action: "sit"; minutes: number; note?: string }
   | { action: "discover"; quest: string; note: string }
-  | { action: "clear-conversation" };
+  | { action: "clear-conversation" }
+  | { action: "clear-looks" };
 
 export async function POST(req: Request) {
   try {
@@ -37,6 +38,7 @@ export async function POST(req: Request) {
       case "sit": j = addSit(j, Number(a.minutes), String(a.note || "")); break;
       case "discover": j = addDiscovery(j, String(a.quest), String(a.note || "")); break;
       case "clear-conversation": j = { ...j, messages: emptyJournal().messages }; break;
+      case "clear-looks": j = { ...j, looks: emptyJournal().looks }; break;
       default: throw new HttpError(400, "Unknown action.");
     }
     await saveJournal(user.id, j);

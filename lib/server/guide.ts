@@ -3,6 +3,7 @@ import type { GuideTurn, Journal } from "@/lib/types";
 import { env, liveReady } from "./env";
 import { chatJSONModels, type ChatMessage } from "./openrouter";
 import { QUESTS, WISDOM, wisdomById } from "@/lib/wisdom";
+import { LOOK_SYSTEM, lensById, type LensId } from "@/lib/lenses";
 
 export const GUIDE_SYSTEM = `You are Koan: a light-hearted, warm friend with the eyes of an old teacher. The person talking to you is your student on an adventure inward, but you never act superior; you are a mirror that keeps pointing them back to their own direct experience.
 
@@ -101,9 +102,41 @@ const DEMO: GuideTurn[] = [
   { reply: "Maybe step outside for a moment. The sky has been doing stillness for a very long time.", question: null, narrative: null, experiment: { title: "Sky gazing", invitation: "Look at open sky for five minutes. Let thoughts pass like clouds, and notice whether the sky minds." }, wisdom: null, care: false },
 ];
 
-export async function guideTurn(text: string, journal: Journal, req: Request): Promise<{ turn: GuideTurn; live: boolean }> {
+// Scripted looks for demo mode, one small run per door.
+const DEMO_LOOK: Record<LensId, GuideTurn[]> = {
+  belief: [
+    { reply: "Ooh, interesting one. Let's hold it up to the light.", question: "Who gave you that idea? Can you remember where it first showed up?", narrative: null, experiment: null, wisdom: null, care: false },
+    { reply: "Beliefs usually stick around because they seem to help somehow.", question: "What does believing this get you?", narrative: null, experiment: null, wisdom: null, care: false },
+    { reply: "No need to swap it for a better one. Just see it there, like glasses you forgot you were wearing.", question: "If you could pick any belief right now, which would you prefer?", narrative: null, experiment: null, wisdom: null, care: false },
+  ],
+  importance: [
+    { reply: "That sounds like a real ten out of ten. Let's check the dial.", question: "From 1 to 10, how important does it feel right now? And who set it there?", narrative: null, experiment: null, wisdom: null, care: false },
+    { reply: "Imagine sliding it down to a 6. You still care, just with looser hands.", question: "What changes in your body at a 6?", narrative: null, experiment: null, wisdom: null, care: false },
+    { reply: "Funny how the grip itself can make things wobble.", question: "What's the worst that could happen, and then what?", narrative: null, experiment: null, wisdom: null, care: false },
+  ],
+  part: [
+    { reply: "Hello, part. Let's say hi to it rather than argue with it.", question: "Where does it live in your body right now?", narrative: null, experiment: null, wisdom: null, care: false },
+    { reply: "Parts are usually trying to help, even when they're clumsy about it.", question: "What do you think it's worried would happen if it stopped?", narrative: null, experiment: null, wisdom: null, care: false },
+    { reply: "And notice who is doing all this noticing. That calm, curious one isn't a part.", question: "How do you feel toward the part now?", narrative: null, experiment: null, wisdom: null, care: false },
+  ],
+  edge: [
+    { reply: "Let's not argue about it. Let's test the edges.", question: "Close your eyes for a moment. Where exactly does your body end?", narrative: null, experiment: null, wisdom: null, care: false },
+    { reply: "Your breath was air in the room a moment ago.", question: "When does it become yours, and when does it stop being yours?", narrative: null, experiment: null, wisdom: null, care: false },
+    { reply: "Sounds happen somewhere. Out there? In here? Both?", question: "What's here when the edge goes soft for a second?", narrative: null, experiment: null, wisdom: null, care: false },
+  ],
+  noise: [
+    { reply: "That's a lot of world to carry around in one head.", question: "Where is that argument happening right now: out there, or in here?", narrative: null, experiment: null, wisdom: null, care: false },
+    { reply: "Let's check the picture against what's actually in front of you.", question: "What can you see, hear and feel in this room, right now?", narrative: null, experiment: null, wisdom: null, care: false },
+    { reply: "Caring about the world is good. Noticing this breath is a place to start.", question: "What's here underneath all the noise?", narrative: null, experiment: null, wisdom: null, care: false },
+  ],
+};
+
+export async function guideTurn(text: string, journal: Journal, req: Request, lensId?: LensId): Promise<{ turn: GuideTurn; live: boolean }> {
   if (crisisLike(text)) return { turn: CARE_REPLY, live: false };
-  if (!liveReady()) return { turn: DEMO[journal.messages.filter((m) => m.role === "user").length % DEMO.length], live: false };
+  const lens = lensById(lensId);
+  const thread = lens ? journal.looks : journal.messages;
+  const asked = thread.filter((m) => m.role === "user").length;
+  if (!liveReady()) return { turn: lens ? DEMO_LOOK[lens.id][asked % 3] : DEMO[asked % DEMO.length], live: false };
 
   const known = journal.narratives.filter((n) => n.status !== "seen-through").slice(-8)
     .map((n) => `- "${n.story}" (${n.status}, seen ${n.count}x)`).join("\n");
@@ -112,6 +145,7 @@ export async function guideTurn(text: string, journal: Journal, req: Request): P
   const path = QUESTS.filter((q) => done.has(q.id)).map((q) => q.title).join(", ");
   const lastFind = journal.discoveries.at(-1)?.note;
   const context = [
+    lens && `${LOOK_SYSTEM}\n\n${lens.guidance}`,
     `WISDOM CARDS (id | teacher | words):\n${CARDS}`,
     path && `Quests they've explored on their path: ${path}.${lastFind ? ` Their latest discovery, in their words: "${lastFind}"` : ""}`,
     known && `Narratives this student is already tracking (name them if they reappear, using the same wording):\n${known}`,
@@ -120,7 +154,7 @@ export async function guideTurn(text: string, journal: Journal, req: Request): P
 
   // Earlier guide turns go back in the same JSON shape the model must answer in. Sending them as
   // plain prose taught the model to drop the JSON from the second turn on.
-  const history: ChatMessage[] = journal.messages.slice(-12).map((m) => m.role === "user"
+  const history: ChatMessage[] = thread.slice(-12).map((m) => m.role === "user"
     ? { role: "user", content: m.text }
     : { role: "assistant", content: JSON.stringify({ reply: m.text, question: m.question ?? null, narrative: null, experiment: m.experiment ?? null, wisdom: m.wisdom ?? null, care: !!m.care }) });
   const messages: ChatMessage[] = [
@@ -130,6 +164,6 @@ export async function guideTurn(text: string, journal: Journal, req: Request): P
   ];
   const raw = await chatJSONModels([env.guideModel, env.guideFallbackModel], { name: "guide_turn", schema: SCHEMA, messages, req, maxTokens: 900 });
   const turn = validateTurn(raw);
-  if (!turn) return { turn: DEMO[1], live: false };
+  if (!turn) return { turn: lens ? DEMO_LOOK[lens.id][0] : DEMO[1], live: false };
   return { turn, live: true };
 }
