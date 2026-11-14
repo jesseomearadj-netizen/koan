@@ -2,7 +2,7 @@
 
 Jesse O'Meara's personal page: a place to find him, talk through ideas, and a side link to [Koan](https://koan-beta.vercel.app).
 
-It's one static file, `index.html`, with no build step. It lives here for now and has nothing to do with the Koan app's build.
+It's a small static site with no build step: `index.html` (the home page), `read.html` (the essay reading page), `style.css` and `content.js`. It lives here for now and has nothing to do with the Koan app's build.
 
 ## Fill in before sharing
 
@@ -26,3 +26,11 @@ To give it its own repository later, copy this folder into the new repo's root.
 ## Adding writing and films
 
 Add entries to the `WORKS` list near the bottom of `index.html`, newest first. Each needs a `kind` (Writing, Film or Experiment), `title`, `blurb` and `url` (a YouTube link, a Substack post, etc.); `date` and `image` are optional. While the list is empty, the section shows three "coming soon" cards.
+
+## Essays, passages and open questions
+
+These live in `content.js`:
+
+- `essays`: longer pieces, each with a `slug`, `title`, `date`, a one-line `blurb` and a `body` list of paragraphs. Each one opens at `read.html?p=<slug>`.
+- `passages`: lines worth keeping, each with `text`, `source` and a `note` about how it connects to something else.
+- `questions`: the open questions shown next to the essays.

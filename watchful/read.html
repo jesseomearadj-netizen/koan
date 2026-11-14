@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Watchful</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Watchful, a human connection. A home for Jesse O'Meara's ideas: writing, passages and connections, essays and open questions, and a place to talk.">
+<link rel="icon" href="mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@300;400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="watchful-mark" viewBox="0 0 110 138">
+  <path d="M55 2C59 2 62 8 63.5 15L101 84C107 96 106 112 95 123C84 133 70 135.5 55 135.5C40 135.5 26 133 15 123C4 112 3 96 9 84L46.5 15C48 8 51 2 55 2Z"/>
+  <path d="M55 9V131"/>
+  <path d="M49.5 23Q55 27.5 60.5 23"/>
+  <path d="M13 95C12 81 25 69 36 69C44 69 48.5 71 49 75M13 95Q30 99.5 47.7 96"/>
+  <path d="M97 95C98 81 85 69 74 69C66 69 61.5 71 61 75M97 95Q80 99.5 62.3 96"/>
+  <path d="M49 75L47 108H63L61 75"/>
+  <path d="M42.5 119.5Q55 126 67.5 119.5"/>
+</symbol></svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="mark" href="./" aria-label="Watchful, home">
+      <svg class="glyph" viewBox="0 0 110 138" aria-hidden="true"><use href="#watchful-mark"/></svg>
+    </a>
+    <nav class="links" aria-label="Main">
+      <a href="./">Home</a>
+      <a href="./#creations">Writing</a>
+      <a href="./#passages">Passages</a>
+      <a href="./#essays">Essays</a>
+    </nav>
+    <a class="btn" href="./#connect">Reach out</a>
+  </div>
+</header>
+
+<main class="reader">
+  <article class="wrap" id="article">
+    <a class="back" href="./#essays">← All essays</a>
+  </article>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <span>Watchful · A Human Connection</span>
+      <span>© 2026 Jesse O'Meara</span>
+    </div>
+  </div>
+</footer>
+
+<script src="content.js"></script>
+<script>
+const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const slug = new URLSearchParams(location.search).get("p");
+const essay = WATCHFUL.essays.find((e) => e.slug === slug);
+const article = document.getElementById("article");
+if (essay) {
+  document.title = `${essay.title} · Watchful`;
+  article.insertAdjacentHTML("beforeend", `
+    <span class="eyebrow">${esc(essay.date || "Essay")}</span>
+    <h1>${esc(essay.title)}</h1>
+    <div class="body">${(essay.body || []).map((p) => `<p>${esc(p)}</p>`).join("")}</div>
+    <p class="sign" style="font-family: var(--display); font-style: italic; font-size: 1.6rem; color: var(--moss);">Jesse</p>`);
+} else {
+  article.insertAdjacentHTML("beforeend", `<h1>This piece isn't here yet.</h1><p>It may still be on its way.</p>`);
+}
+</script>
+</body>
+</html>
